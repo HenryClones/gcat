@@ -6,6 +6,6 @@
  */
 int main(int argc, char **argv)
 {
-    void* fun_memory = malloc();
+    void* fun_memory = gall();
     
 }
