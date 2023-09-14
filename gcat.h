@@ -2,4 +2,5 @@
 #define GCAT_MANAGED_PAGE_SIZE 65536
 #endif
 
-void *gall();
+char *gall();
+void burr(char* block);
