@@ -1,6 +1,14 @@
+# IDE
 .vscode
+build
+
+# Auto-generated
+Makefile
 CMakeFiles
 CMakeCache.*
 cmake_install*
-Makefile
+test
+
+# Output
 *.a
+*.so
