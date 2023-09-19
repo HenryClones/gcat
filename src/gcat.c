@@ -175,9 +175,9 @@ static void init_gc()
 /**
  * Expand gcat's created block.
  * @pre gcat has a managed memory page.
- * @post the garbage collected page is at least as big as it was initially.
+ * @post the garbage collected page is at least as big as it was initially
  */
-char *greall()
+char *grow()
 {
     return "";
 }

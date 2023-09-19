@@ -3,4 +3,5 @@
 #endif
 
 char *gall();
+char *grow();
 void burr(char* block);
