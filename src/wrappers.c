@@ -1,4 +1,6 @@
+#include <sys/mman.h>
 #include <stdio.h>
+#include <fcntl.h>
 #include <errno.h>
 
 #define MAP_FAILED ((void *) -1)
@@ -11,7 +13,7 @@ static void unixerror(int n, char *stage, char *resource)
 
 int Open(char *path)
 {
-    int fd = open(path);
+    int fd = open(path, O_RDONLY);
     if (fd == -1)
     {
         unixerror(errno, "initializing page by opening file path =", path);

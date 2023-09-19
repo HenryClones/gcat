@@ -27,12 +27,12 @@
 /**
  * Initial amount of users for a new block.
  */
-#define GCAT_INITIAL_USERS 1
+#define GCAT_INITIAL_USERS 1ULL
 
 /**
  * Bit mask for the users of a block.
  */
-#define GCAT_BLOCK_HEADER_MASK_USERS (0x3FFFFFFFULL << 34)
+#define GCAT_BLOCK_HEADER_MASK_USERS (0x3FFFFFFFULL << 34ULL)
 
 /**
  * Size of a block in bytes.
@@ -42,7 +42,7 @@
 /**
  * Bit mask for size of a block in bytes.
  */
-#define GCAT_BLOCK_HEADER_MASK_SIZE (GCAT_BLOCK_SIZE << 2)
+#define GCAT_BLOCK_HEADER_MASK_SIZE (GCAT_BLOCK_SIZE << 2ULL)
 
 /**
  * Bit mask for free bit in the previous block.
@@ -92,7 +92,7 @@ typedef struct
 {
     char *prev;
     char *next;
-    long long int block_header;
+    unsigned long long int block_header;
     char payload[ARRAY_VARIABLE_LENGTH];
 } gcat_block;
 
@@ -132,13 +132,14 @@ static void make_gcat_block(void* position, size_t block_size,
     int prev_bit = 0;
     if (prev != NULL)
     {
-        prev_bit = GCAT_GETMASK_FREE(prev) << 1;
+        prev_bit = GCAT_GETMASK_FREE(prev) << 1ULL;
     }
     if (next != NULL)
     {
         GCAT_SETMASK_FREE(next, free);
     }
-    b.block_header = free | prev_bit | (block_size << 2) | GCAT_INITIAL_USERS << 34
+    b.block_header = free | prev_bit | (block_size << 2ULL) |
+        (GCAT_INITIAL_USERS << 34ULL);
     /*
     if (next != NULL && GCAT_GETMASK_FREE(position))
     {
@@ -191,9 +192,8 @@ void burr(char *block)
 {
     if (block < gcat_mem || block > gcat_mem + gcat_size)
     {
-        return block;
+
     }
-    return block;
 }
 
 /**
