@@ -3,3 +3,4 @@ CMakeFiles
 CMakeCache.*
 cmake_install*
 Makefile
+*.a
