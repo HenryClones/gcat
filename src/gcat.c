@@ -1,5 +1,4 @@
 #include <pthread.h>
-#include <sys/mman.h>
 #include <wrappers.h>
 #include <gcat.h>
 
@@ -12,17 +11,6 @@
  * The initial size of GCAT's garbage collected pages.
  */
 #define GCAT_INITIAL_MANAGED_PAGE_SIZE 65536
-
-/**
- * The memory segment can be read and written to, but not executed.
- * It should be protected as it grows upward in the memory when needed.
- */
-#define GCAT_MANAGED_PAGE_PROT (PROT_READ | PROT_WRITE | PROT_GROWSUP)
-
-/**
- * Mapped page settings for the created memory segment.
- */
-#define GCAT_MANAGED_PAGE_FLAGS (MAP_SHARED)
 
 /**
  * Initial amount of users for a new block.
@@ -56,29 +44,49 @@
 #define GCAT_BLOCK_HEADER_MASK_FREE_BIT 0x1ULL
 
 /**
- * 
+ * The header of a gcat block.
  */
-#define GCAT_BLOCK_HEADER(ptr) (((long long int *) ptr) + 2)
+#define GCAT_BLOCK_HEADER(ptr) (((gcat_block *) ptr)->block_header)
 
 /**
  * Get the free bit for a block.
  */
-#define GCAT_GETMASK_FREE(ptr) ((int) (*GCAT_BLOCK_HEADER(ptr) & GCAT_BLOCK_HEADER_MASK_FREE_BIT))
+#define GCAT_GETMASK_FREE(ptr) ((int) (GCAT_BLOCK_HEADER(ptr) & GCAT_BLOCK_HEADER_MASK_FREE_BIT))
 
 /**
  * Get the previous block's free bit.
  */
-#define GCAT_GETMASK_PREV(ptr) ((int) (*GCAT_BLOCK_HEADER(ptr) & GCAT_BLOCK_HEADER_MASK_PREV_FREE_BIT))
+#define GCAT_GETMASK_PREV(ptr) ((int) (GCAT_BLOCK_HEADER(ptr) & GCAT_BLOCK_HEADER_MASK_PREV_FREE_BIT))
 
 /**
  * Get the free bit for a block.
  */
-#define GCAT_SETMASK_FREE(ptr, free) *ptr = *GCAT_BLOCK_HEADER(ptr) | (free ? GCAT_BLOCK_HEADER_MASK_FREE_BIT : 0)
+#define GCAT_SETMASK_FREE(ptr, free) GCAT_BLOCK_HEADER(ptr) = GCAT_BLOCK_HEADER(ptr) | (free ? GCAT_BLOCK_HEADER_MASK_FREE_BIT : 0)
 
 /**
  * Get the previous block's free bit.
  */
-#define GCAT_SETMASK_PREV(ptr, free) *ptr = *GCAT_BLOCK_HEADER(ptr) | (free ? GCAT_BLOCK_HEADER_MASK_PREV_FREE_BIT : 0)
+#define GCAT_SETMASK_PREV(ptr, free) GCAT_BLOCK_HEADER(ptr) = GCAT_BLOCK_HEADER(ptr) | (free ? GCAT_BLOCK_HEADER_MASK_PREV_FREE_BIT : 0)
+
+/**
+ * Get the users in the gcat block header.
+ */
+#define GCAT_GETUSER(ptr) ((GCAT_BLOCK_HEADER(ptr) & GCAT_BLOCK_HEADER_MASK_USERS) >> 34ULL)
+
+/**
+ * Get the users in the gcat block header. (Does not assign to it like adduser and removeuser)
+ */
+#define GCAT_SETUSER(ptr, users) ((GCAT_BLOCK_HEADER(ptr) & ~GCAT_BLOCK_HEADER_MASK_USERS) | (users << 34ULL))
+
+/**
+ * Add a user to a GCAT block.
+ */
+#define GCAT_ADDUSER(ptr) GCAT_BLOCK_HEADER(ptr) |= GCAT_SETUSER(ptr, GCAT_GETUSER(ptr))
+
+/**
+ * Remove a user from a GCAT block.
+ */
+#define GCAT_RMUSER(ptr) GCAT_BLOCK_HEADER(ptr) |= GCAT_SETUSER(ptr, GCAT_GETUSER(ptr))
 
 /**
  * This value indicates that the size of an array may change at runtime.
@@ -88,10 +96,10 @@
 /**
  * Memory block.
  */
-typedef struct
+typedef struct block
 {
-    char *prev;
-    char *next;
+    struct block *prev;
+    struct block *next;
     unsigned long long int block_header;
     char payload[ARRAY_VARIABLE_LENGTH];
 } gcat_block;
@@ -99,7 +107,7 @@ typedef struct
 /**
  * The allocator's garbage-collector managed memory block.
  */
-static char *gcat_mem = NULL;
+static gcat_block *gcat_mem = NULL;
 
 /**
  * The size of the above block.
@@ -117,7 +125,7 @@ static long long int gcat_size = GCAT_INITIAL_MANAGED_PAGE_SIZE;
  * @param free whether the block is free
  */
 static void make_gcat_block(void* position, size_t block_size,
-    char *prev, char *next, unsigned int free)
+    gcat_block *prev, gcat_block *next, unsigned int free)
 {
     // Make sure free is the right value
     if (free > 1)
@@ -133,25 +141,15 @@ static void make_gcat_block(void* position, size_t block_size,
     if (prev != NULL)
     {
         prev_bit = GCAT_GETMASK_FREE(prev) << 1ULL;
+        prev->next = (gcat_block*) position;
     }
     if (next != NULL)
     {
         GCAT_SETMASK_FREE(next, free);
+        next->prev = (gcat_block*) position;
     }
     b.block_header = free | prev_bit | (block_size << 2ULL) |
         (GCAT_INITIAL_USERS << 34ULL);
-    /*
-    if (next != NULL && GCAT_GETMASK_FREE(position))
-    {
-        GCAT_SETMASK_FREE(used);
-    }
-    */
-    /*
-    if (prev != NULL && GCAT_GETMASK_PREV(position))
-    {
-        GCAT_SETMASK_PREV(prev, free);
-    }
-    */
 }
 
 /**
@@ -164,12 +162,15 @@ static void init_gc()
 {
     // Initialize gcat_mem
     int fd = Open("/dev/zero");
-    gcat_mem = Mmap(NULL, GCAT_MANAGED_PAGE_SIZE, GCAT_MANAGED_PAGE_PROT,
-        GCAT_MANAGED_PAGE_FLAGS, fd, 0);
+    gcat_mem = Mmap(NULL, GCAT_MANAGED_PAGE_SIZE, fd);
+    Close(fd);
     // Initialize the "dummy" block
-    make_gcat_block(gcat_mem, 0, NULL, NULL, 1);
+    make_gcat_block(gcat_mem, 0, NULL, NULL, 0);
     // Initialize the free blocks to fill the memory
-    make_gcat_block(gcat_mem, 0, gcat_mem, gcat_mem, 0);
+    make_gcat_block(gcat_mem + sizeof(gcat_block),
+        GCAT_INITIAL_MANAGED_PAGE_SIZE - 2 * sizeof(gcat_block),
+        gcat_mem, gcat_mem, 1);
+    GCAT_ADDUSER(gcat_mem);
 }
 
 /**
@@ -177,9 +178,9 @@ static void init_gc()
  * @pre gcat has a managed memory page.
  * @post the garbage collected page is at least as big as it was initially
  */
-char *grow()
+void *grow(void* block)
 {
-    return "";
+    return block;
 }
 
 /**
@@ -188,12 +189,18 @@ char *grow()
  * @post the block returned has one less user.
  * @return The memory which was allocated, or NULL if it failed.
  */
-void burr(char *block)
+void burr(void *block)
 {
-    if (block < gcat_mem || block > gcat_mem + gcat_size)
+    // Calculate the offset to the next field
+    int off = sizeof(unsigned long long int) + 2 * sizeof(void *);
+    block -= off;
+    // Change it to an if statement
+    if ((gcat_block *) block < gcat_mem || (gcat_block *) block > (gcat_mem + gcat_size))
     {
-
+        return;
     }
+    gcat_block *actual_block = (gcat_block *) block;
+    GCAT_RMUSER(actual_block);
 }
 
 /**
@@ -201,12 +208,21 @@ void burr(char *block)
  * @post there is a used block with one user which was returned.
  * @return The memory which was allocated, or NULL if it failed.
  */
-char *gall()
+void *gall(int size)
 {
     // Initialize gcat_mem if it does not exist
     if (gcat_mem == NULL)
     {
         init_gc();
     }
-    return gcat_mem + HEADER_SIZE;
+    // Go to the first block
+    gcat_block *block = gcat_mem;
+    // Seek until a free block is found, the free block is b
+    gcat_block *b;
+    for (b = block; b != NULL && !GCAT_GETMASK_FREE(b); b = b->next);
+    // Allocate a block into b
+    make_gcat_block(b, size, b->prev, b->next, 0);
+    GCAT_ADDUSER(b);
+    // Return the block
+    return b->payload;
 }
