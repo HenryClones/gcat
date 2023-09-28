@@ -3,5 +3,5 @@
 #endif
 
 void *gall(int size);
-void *grow(void*);
+void *grow(void*, int size);
 void burr(void*);
