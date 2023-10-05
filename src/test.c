@@ -9,9 +9,9 @@
  */
 int main(int argc, char **argv)
 {
-    void *fun_memory = gall(16);
-    void *funner_memory = gall(48);
-    void *funnest_memory = gall(32);
+    void *fun_memory = gall(16, NULL);
+    void *funner_memory = gall(48, NULL);
+    void *funnest_memory = gall(32, NULL);
     char *string = "als;dkj";
     strcpy(fun_memory, string);
     printf("%s", (char*) fun_memory);
