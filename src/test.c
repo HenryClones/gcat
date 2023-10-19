@@ -14,14 +14,12 @@ int main(int argc, char **argv)
     void *funnest_memory = gall(32, NULL);
     char *string = "als;dkj";
     strcpy(fun_memory, string);
-    printf("%s", (char*) fun_memory);
-    printf("%s", (char*) funner_memory);
+    printf("%s\n", (char*) fun_memory);
+    printf("%s\n", (char*) funner_memory);
     
     burr((void*) 0);
     burr(&argc);
     burr(fun_memory);
     burr(funnest_memory);
     burr(funner_memory);
-    
-    printf("\n");
 }

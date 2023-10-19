@@ -3,7 +3,5 @@
 #endif
 
 typedef void(* reaper)(void *);
-
 void *gall(int size, reaper destructor);
-void *grow(void*, int size);
 void burr(void*);
