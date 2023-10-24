@@ -17,9 +17,9 @@ int main(int argc, char **argv)
     printf("%s\n", (char*) fun_memory);
     printf("%s\n", (char*) funner_memory);
     
-    burr((void*) 0);
-    burr(&argc);
-    burr(fun_memory);
-    burr(funnest_memory);
-    burr(funner_memory);
+    burr_function((void*) 0);
+    burr_function(&argc);
+    burr_function(fun_memory);
+    burr_function(funnest_memory);
+    burr_function(funner_memory);
 }
