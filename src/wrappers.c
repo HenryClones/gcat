@@ -1,3 +1,4 @@
+#define _SYSTEMV_SOURCE
 #include <sys/mman.h>
 #include <stdio.h>
 #include <signal.h>
@@ -22,7 +23,7 @@
 static void unixerror_simple(int n, char *cause)
 {
     fprintf(stderr,
-        "GCAT error: Unix error %d during %s %s.\n", n, cause);
+        "GCAT error: Unix error %d during %s.\n", n, cause);
 }
 
 // Two strings, the stage/function and the resource.
@@ -36,14 +37,14 @@ static void unixerror_citereason(int n, char *stage, char *resource)
 static void unixerror_citeobject(int n, char *stage, char *resource, void *blame)
 {
     fprintf(stderr,
-        "GCAT error: Unix error %d during %s at %p.\n", n, stage, resource, blame);
+        "GCAT error: Unix error %d during %s %s with %p.\n", n, stage, resource, blame);
 }
 
 // Two strings and a pointer, the causing function, the resource, and the offending pointer.
 static void unixerror_citeoffset(int n, char *stage, char *resource, void *blame, int offset)
 {
     fprintf(stderr,
-        "GCAT error: Unix error %d during %s at %p:%d.\n", n, stage, resource, blame, offset);
+        "GCAT error: Unix error %d during %s %s at %p:%d.\n", n, stage, resource, blame, offset);
 }
 
 int Open(char *path)
@@ -76,6 +77,24 @@ void *Mmap(void *addr, size_t length, int fd)
     }
     return block;
 }
+
+void *Mremap(void *addr, size_t oldlength, size_t newlength)
+{
+    #ifdef mremap
+    void *block = mremap(addr, oldlength, newlength, 0);
+    #else
+    int fd = Open("/dev/zero");
+    void *block =  mmap(addr, newlength, GCAT_MANAGED_PAGE_PROT,
+        GCAT_MANAGED_PAGE_FLAGS | MAP_FIXED, fd, 0);
+    Close(fd, "/dev/zero");
+    #endif
+    if (block == MAP_FAILED)
+    {
+        unixerror_simple(errno, "expanding page with mremap function");
+    }
+    return block;
+}
+
 
 int Kill(char *cause, void *address)
 {

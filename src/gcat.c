@@ -6,7 +6,21 @@
 /**
  * The initial size of GCAT's garbage collected pages.
  */
-#define GCAT_INITIAL_MANAGED_PAGE_SIZE 65536ULL
+#define GCAT_INITIAL_MANAGED_PAGE_SIZE ((size_t) 65536)
+
+/**
+ * This can compare two pointers for being greater than or equal to each other.
+ * This is undefined behavior, and only works for pointers within register size,
+ * as well as only working on flat architectures.
+ */
+#define UB_pointer_gte(ptr1, ptr2) (((uintptr_t) ptr1) >= ((uintptr_t) ptr2))
+
+/**
+ * This can compare two pointers for being less than or equal to each other.
+ * This is undefined behavior, and only works for pointers within register size,
+ * as well as only working on flat architectures.
+ */
+#define UB_pointer_lte(ptr1, ptr2) (((uintptr_t) ptr1) <= ((uintptr_t) ptr2))
 
 typedef uint64_t memory_area[1];
 
@@ -63,6 +77,11 @@ struct block
  * The allocator's garbage-collector managed memory block.
  */
 static struct block *gcat_mem = NULL;
+
+/**
+ * The allocator's last freed block.
+ */
+static struct block *last_free = NULL;
 
 /**
  * The size of the above block.
@@ -127,6 +146,18 @@ inline static void set_pointer_next(struct block blk, struct block * next)
 }
 
 /**
+ * Block boundary.
+ * @pure
+ * @param blk the block
+ * @param size the size for where the boundary is
+ * @return the size_t area to place it at
+ */
+inline static size_t *get_block_boundary(void *blk, size_t size)
+{
+    return ((size_t *) blk) + size / sizeof(size_t) - 1;
+}
+
+/**
  * Initialize a struct block.
  * @pre there is not a block at position
  * @post there is now a block at position, with the used bits of prev/next modified
@@ -167,10 +198,15 @@ static void make_block(struct block *position, struct block *prev, struct block 
             next_block.header.free_block.pointers.prev = position;
         }
     }
+    else
+    {
+        update_ref_strong(blk, 1);
+    }
 
     // Initialize size correctly
     blk.size = block_size;
-    ((size_t *) blk.payload)[blk.size - 1] = blk.size;
+    size_t *boundary = get_block_boundary(position, block_size);
+    *boundary = blk.size;
 
     // Set the destructor
     blk.header.used_block.finalizer = finalizer;
@@ -200,23 +236,50 @@ static void coalesce(struct block *blk)
         prev->header = blk->header;
         blk = prev;
     }
-    ((size_t *) blk->payload)[blk->size - 1] = blk->size;
+
+    // Add a block boundary
+    size_t *boundary = get_block_boundary(blk, blk->size);
+    *boundary = blk->size;
 }
 
 /**
  * Free a block.
- * @pre block is used and has no users
+ * @pre block is used and has no users and last_free != NULL
  * @post block will be freed up and coalesced
  */
 static void free_block(struct block blk)
 {
-    // Execute finalizer over payload
-    blk.header.used_block.finalizer(blk.payload);
+    if (blk.header.used_block.finalizer)
+    {
+        // Execute finalizer over payload
+        blk.header.used_block.finalizer(blk.payload);
+    }
     // The block is now freed
     blk.flags.free = free;
     // Be free
-    blk.header.free_block.pointers.next = NULL;
-    blk.header.free_block.pointers.prev = NULL;
+    make_block(&blk, last_free, last_free, free, blk.size, NULL);
+    // And reassign the correct one
+    last_free = &blk;
+}
+
+/**
+ * Calculate the size to expand GCAT's memory to, in order to ensure capacity.
+ * @pure
+ * @param size the current size of a memory block.
+ * @return the new size
+ */
+inline static size_t get_newsize(size_t size)
+{
+    return size * 2;
+}
+
+/**
+ * Grow GCAT's memory.
+ * @param newsize the new size of GCAT'S memory
+ */
+static void grow_mem(size_t newsize)
+{
+    Mremap(gcat_mem, gcat_size, newsize);
 }
 
 /**
@@ -242,13 +305,11 @@ static void init_mem()
 {
     // Call the above get_page function to set up gcat.
     get_page();
-    // Initialize the "dummy" block
-    make_block(gcat_mem, NULL, NULL, used, 0, NULL);
     // Initialize the free blocks to fill the memory
-    void *location = (void *)gcat_mem->payload;
+    void *location = (void *)gcat_mem;
+    last_free = location;
     make_block(location, location, location, free,
-        gcat_size - sizeof(*gcat_mem), NULL);
-    update_ref_strong(*gcat_mem, 1);
+        gcat_size - sizeof(struct block), NULL);
 }
 
 /**
@@ -258,8 +319,8 @@ static void init_mem()
  */
 inline static int is_managed(void *block)
 {
-    return block >= (void *) gcat_mem->payload &&
-        block <= (void *) (gcat_mem + gcat_size);
+    return UB_pointer_gte(block, (void *) (gcat_mem->payload)) &&
+        UB_pointer_lte(block, (void *) (gcat_mem + gcat_size));
 }
 
 /**
@@ -274,7 +335,7 @@ inline static struct block *get_block_header(void *pointer)
     }
 
     // The payload pointer
-    uint64_t *payload = (uint64_t *) pointer;
+    size_t *payload = (size_t *) pointer;
 
     // The block pointer
     return (struct block *) (payload - offsetof(struct block, payload));
@@ -302,10 +363,9 @@ void burr_function(void *pointer)
     }
 }
 
-/**
+/*/*
  * Remove a total user from a gall-ocated block.
  * @param block the reference to remove
- */
 void burr_object(void *pointer)
 {
     // Get the block header
@@ -322,6 +382,7 @@ void burr_object(void *pointer)
         }
     }
 }
+ */
 
 /**
  * Access a payload with bounds checks applied.
@@ -398,20 +459,58 @@ void *hew_object(void *pointer)
  * @post there is a used block with one user which was returned.
  * @return The memory which was allocated, or NULL if it failed.
  */
-void *gall(size_t size, reaper destructor)
+void *gall(size_t size, reaper finalizer)
 {
     // Initialize gcat_mem if it does not exist
     if (gcat_mem == NULL)
     {
         init_mem();
     }
-    // Go to the first block
-    struct block *blk = gcat_mem;
+
     // Fit a size_t in the size
     size += 1;
     
     // Find a block
-
-    // Return the block
-    return blk->payload;
+    struct block *position;
+    for (
+        position = last_free;
+        position + size < gcat_mem + gcat_size &&
+        position != last_free;
+        position = position + position->size
+        )
+    
+    // If finding a block failed
+    if (position == free)
+    {
+        grow_mem(get_newsize(gcat_size));
+        return gall(size, finalizer);
+    }
+    else
+    {
+        // For testing if it is a full block
+        size_t size_padding = position->size - size;
+        if (size_padding > sizeof(struct block))
+        {
+            // Make a free block
+            struct block *new_free_block = position + size +
+                sizeof(struct block);
+            make_block(new_free_block,
+                position->header.free_block.pointers.prev,
+                position->header.free_block.pointers.next,
+                used, size_padding, NULL);
+            last_free = new_free_block;
+            // Return the block
+            return position->payload;
+        }
+        else
+        {
+            // Add extra padding to avoid internal fragmentation
+            size += size_padding;
+        }
+        // Make a new block
+        make_block(position,
+            NULL,
+            NULL,
+            used, size, finalizer);
+    }
 }
