@@ -8,6 +8,7 @@
  */
 #define GCAT_INITIAL_MANAGED_PAGE_SIZE ((size_t) 65536)
 
+#ifndef NO_UB
 /**
  * This can compare two pointers for being greater than or equal to each other.
  * This is undefined behavior, and only works for pointers within register size,
@@ -21,6 +22,7 @@
  * as well as only working on flat architectures.
  */
 #define UB_pointer_lte(ptr1, ptr2) (((uintptr_t) ptr1) <= ((uintptr_t) ptr2))
+#endif
 
 typedef uint64_t memory_area[1];
 
@@ -288,11 +290,7 @@ static void grow_mem(size_t newsize)
  */
 static void *get_page()
 {
-    // Initialize gcat_mem
-    char *file_page = "/dev/zero";
-    int fd = Open(file_page);
-    gcat_mem = Mmap(NULL, GCAT_MANAGED_PAGE_SIZE, fd);
-    Close(fd, file_page);
+    gcat_mem = Mmap(NULL, GCAT_MANAGED_PAGE_SIZE);
 }
 
 /**
