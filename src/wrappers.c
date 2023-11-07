@@ -1,4 +1,5 @@
 #include <sys/mman.h>
+#include <sys/resource.h>
 #include <stdio.h>
 #include <signal.h>
 #include <fcntl.h>
@@ -89,6 +90,11 @@ int Getpagesize()
 
 void *Mmap(void *addr, size_t length)
 {
+    // Set the soft memory limit
+    struct rlimit limits;
+    getrlimit(RLIMIT_AS, &limits);
+    limits.rlim_max += length;
+    setrlimit(RLIMIT_AS, &limits);
     #ifndef MAP_ANONYMOUS
     // Create the /dev/zero file descriptor
     if (!devzero_fd)
@@ -128,7 +134,11 @@ void *Mmap(void *addr, size_t length)
 
 void *Mremap(void *addr, size_t oldlength, size_t newlength)
 {
-
+    // Set the soft memory limit
+    struct rlimit *limits;
+    getrlimit(RLIMIT_AS, limits);
+    limits->rlim_max += newlength - oldlength;
+    setrlimit(RLIMIT_AS, limits);
     // before remapping the rest of the memory
     #ifdef mremap
 
