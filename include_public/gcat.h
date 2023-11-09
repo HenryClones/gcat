@@ -12,8 +12,8 @@ extern "C" {
 void *bounds_checked_access(void *pointer, int base, int offset, int step);
 void *hew_function(void *pointer);
 void *hew_object(void *pointer);
-void *gall(size_t size, gcat_reaper finalizer);
-void burr_function(void *pointer);
+void *gall(size_t size, void *finalizer);
+void burr(void *pointer);
 // void burr_object(void *pointer);
 
 #endif // GCAT_H

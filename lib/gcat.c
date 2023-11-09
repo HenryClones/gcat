@@ -1,7 +1,10 @@
 #include <stdint.h>
-#include "../include_private/wrappers.h"
-#include "../include_private/blocks.h"
-#include "../include_public/gcat.h"
+#include "wrappers.h"
+#include "blocks.h"
+#include "gcat.h"
+
+extern gcat_mem;
+extern last_unused;
 
 /**
  * Grab a reference to the pointer for the current function.
@@ -74,11 +77,27 @@ void *bounds_checked_access(void *pointer, int base, int offset, int step)
 }
 
 /**
+ * Remove a user from a gall-ocated block.
+ * @pre the block provided is allocated and gcat's garbage collector was initialized.
+ * @post the block returned has one less user.
+ * @return The memory which was allocated, or NULL if it failed.
+ */
+void burr(void *block)
+{
+    // Calculate the offset to the next field
+    int off = sizeof(unsigned long long int) + 2 * sizeof(void *);
+    block -= off;
+    // Change it to an if statement
+    struct block *actual_block = (struct block *) block;
+    update_ref_strong(*actual_block, -1);
+}
+
+/**
  * GCAT's customized garbage-collected memory allocator.
  * @post there is a used block with one user which was returned.
  * @return The memory which was allocated, or NULL if it failed.
  */
-void *gall(size_t size, gcat_reaper finalizer)
+void *gall(size_t size, void *finalizer)
 {
     // Initialize gcat_mem if it does not exist
     if (gcat_mem == NULL)
@@ -90,18 +109,12 @@ void *gall(size_t size, gcat_reaper finalizer)
     size += 1;
     
     // Find a block
-    struct block *position;
-    for (
-        position = last_free;
-        position + size < gcat_mem + gcat_size &&
-        position != last_free;
-        position = position + position->size
-        )
+    struct block *position = get_unused(size);
     
     // If finding a block failed
-    if (position == free)
+    if (position == unused)
     {
-        grow_mem(get_newsize(gcat_size));
+        expand_mem();
         return gall(size, finalizer);
     }
     else
@@ -110,14 +123,14 @@ void *gall(size_t size, gcat_reaper finalizer)
         size_t size_padding = position->size - size;
         if (size_padding > sizeof(struct block))
         {
-            // Make a free block
-            struct block *new_free_block = position + size +
+            // Make a unused block
+            struct block *new_unused_block = position + size +
                 sizeof(struct block);
-            make_block(new_free_block,
-                position->header.free_block.pointers.prev,
-                position->header.free_block.pointers.next,
+            make_block(new_unused_block,
+                position->header.unused_block.pointers.prev,
+                position->header.unused_block.pointers.next,
                 used, size_padding, NULL);
-            last_free = new_free_block;
+            last_unused = new_unused_block;
             // Return the block
             return position->payload;
         }
@@ -130,7 +143,7 @@ void *gall(size_t size, gcat_reaper finalizer)
         make_block(position,
             NULL,
             NULL,
-            used, size, finalizer);
+            used, size, (gcat_reaper) finalizer);
         return position->payload;
     }
     

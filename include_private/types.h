@@ -2,26 +2,27 @@
 extern "C" {
 #endif // __cplusplus
 
+#ifndef uint8_t
+#include <stdint.h>
+#endif // size_t
+
+#ifndef size_t
+#include <stddef.h>
+#endif
+
 #ifndef gcat_reaper
 typedef void(* gcat_reaper)(void *);
 #endif
 
-#ifndef memory_area
-// 64-bit aligned memory area
-#ifdef __BIGGEST_ALIGNMENT__
-
-#endif
-typedef struct __attribute__(__aligned__) aligned_bytes {
-    uint8_t bytes[1];
-} memory_area;
-#endif
-
 #ifndef liberty
-// Determine whether a block is free or used
-typedef enum {free, used} liberty;
+// Determine whether a block is unused or used
+typedef enum {unused, used} liberty;
 #endif
 
-#ifndef struct block
+#ifndef GCAT_BLOCK_DEF
+#define GCAT_BLOCK_DEF
+
+#define VARIABLE_LENGTH_ARRAY 1
 // Handle every type of block
 struct block
 {
@@ -30,23 +31,23 @@ struct block
     // Flag data associated with a block
     struct
     {
-        // coalescence: free -> !prev_free
-        liberty free;
-        liberty prev_free;
+        // coalescence: unused -> !prev_unused
+        liberty unused;
+        liberty prev_unused;
     } flags;
 
     union
     {
         struct
         {
-            // The pointers in the explicit free list.
+            // The pointers in the explicit unused list.
             struct
             {
                 // treat as implementation dependent?
                 struct block *prev;
                 struct block *next;
             } pointers;
-        } free_block;
+        } unused_block;
 
         struct
         {
@@ -60,14 +61,14 @@ struct block
             // The finalizer, if defined
             gcat_reaper finalizer;
         } used_block;
-    } header;
+    } header __attribute__((aligned));
 
     // The payload, offsetof must work here
     // uint64_t forces alignment on 64-bit systems for now
     // Ends with the size
-    memory_area payload;
+    uint8_t payload[VARIABLE_LENGTH_ARRAY];
 };
-#endif
+#endif // GCAT_BLOCK_DEF
 
 #ifdef __cplusplus
 }

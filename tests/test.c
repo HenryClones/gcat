@@ -2,16 +2,31 @@
 #include <assert.h>
 #include <stdio.h>
 #include <string.h>
-#include "../include_public/gcat.h"
-#include "../include_private/blocks.h"
-#include "../include_private/wrappers.h"
+#include <gcat.h>
+#include "blocks.h"
+#include "wrappers.h"
 
 /**
  * Select a part of gcat to test.
  */
 static int select_test(char *test)
 {
-
+    if (strcmp(test, "blocks"))
+    {
+        return 0;
+    }
+    
+    if (strcmp(test, "wrappers"))
+    {
+        return 0;
+    }
+    
+    if (strcmp(test, "gcat"))
+    {
+        return 0;
+    }
+    
+    return 1;
 }
 
 /**
@@ -31,17 +46,16 @@ int main(int argc, char **argv)
     // Test memory string copying integrity
     char *string = "als;dkj";
     strcpy(fun_memory, string);
-    char *string = "als;dkj";
-    strcpy(fun_memory, string);
+    strcpy(funner_memory, string);
     printf("%s\n", (char*) fun_memory);
     printf("%s\n", (char*) funner_memory);
     
-    // And free the blocks at the end
-    burr_function((void*) 0);
-    burr_function(&argc);
-    burr_function(fun_memory);
-    burr_function(funnest_memory);
-    burr_function(funner_memory);
+    // And unused the blocks at the end
+    burr((void*) 0);
+    burr(&argc);
+    burr(fun_memory);
+    burr(funnest_memory);
+    burr(funner_memory);
 
     return EXIT_SUCCESS;
 }
