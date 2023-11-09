@@ -2,7 +2,7 @@
 
 project("GCAT" "C")
 
-set(SOURCE_FILES "gcat.c" "blocks.c")
+set(SOURCE_FILES "gcat.c" "blocks.c" "mem.c")
 
 # GCAT library
 include(GenerateExportHeader)

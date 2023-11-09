@@ -11,6 +11,7 @@
  */
 static int select_test(char *test)
 {
+
     if (strcmp(test, "blocks"))
     {
         return 0;
@@ -21,6 +22,11 @@ static int select_test(char *test)
         return 0;
     }
     
+    if (strcmp(test, "mem"))
+    {
+        return 0;
+    }
+
     if (strcmp(test, "gcat"))
     {
         return 0;

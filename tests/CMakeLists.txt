@@ -8,6 +8,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_SOURCE_DIR}/include_o
 target_link_libraries(${PROJECT_NAME} ${project_name})
 target_link_libraries(${PROJECT_NAME} wrappers)
 
+add_test(NAME TestMem COMMAND ${PROJECT_NAME} mem)
 add_test(NAME TestBlocks COMMAND ${PROJECT_NAME} blocks)
 add_test(NAME TestWrappers COMMAND ${PROJECT_NAME} wrappers)
 add_test(NAME TestGcat COMMAND ${PROJECT_NAME} gcat)

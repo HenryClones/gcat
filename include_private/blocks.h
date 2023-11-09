@@ -30,19 +30,8 @@ void update_ref_strong(struct block blk, int delta);
 inline int compare_refs(struct block blk);
 inline void set_pointer_prev(struct block blk, struct block * prev);
 inline void set_pointer_next(struct block blk, struct block * next);
-inline size_t *get_block_boundary(void *blk, size_t size);
-void make_block(struct block *position, struct block *prev, struct block *next,
-    liberty is_unused, size_t block_size, gcat_reaper finalizer);
 void coalesce(struct block *blk);
-void unused_block(struct block blk);
-inline size_t get_newsize(size_t size);
-void grow_mem(size_t newsize);
-void get_page();
-void init_mem();
-void expand_mem();
-inline int is_managed(void *block);
-inline struct block *get_unused(size_t size);
-struct block *get_block_header(void *pointer);
+void free_block(struct block blk);
 
 #ifdef __cplusplus
 }

@@ -2,6 +2,8 @@
 extern "C" {
 #endif // __cplusplus
 
+#pragma once
+
 #ifndef uint8_t
 #include <stdint.h>
 #endif // size_t
@@ -69,6 +71,8 @@ struct block
     uint8_t payload[VARIABLE_LENGTH_ARRAY];
 };
 #endif // GCAT_BLOCK_DEF
+
+#pragma endregion
 
 #ifdef __cplusplus
 }
