@@ -1,7 +1,6 @@
 #include <stdint.h>
-#include <pthread.h>
-#include <wrappers.h>
-#include <gcat.h>
+#include "../include_private/wrappers.h"
+#include "../include_public/gcat.h"
 
 /**
  * The initial size of GCAT's garbage collected pages.
@@ -288,7 +287,7 @@ static void grow_mem(size_t newsize)
  * Get a page of memory for GCAT.
  * @return the new page of memory
  */
-static void *get_page()
+static void get_page()
 {
     gcat_mem = Mmap(NULL, GCAT_MANAGED_PAGE_SIZE);
 }
@@ -510,5 +509,8 @@ void *gall(size_t size, reaper finalizer)
             NULL,
             NULL,
             used, size, finalizer);
+        return position->payload;
     }
+    
+    return NULL;
 }

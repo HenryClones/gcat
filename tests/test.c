@@ -1,8 +1,8 @@
-#include <gcat.h>
 #include <stdlib.h>
 #include <assert.h>
 #include <stdio.h>
 #include <string.h>
+#include "../include_public/gcat.h"
 
 /**
  * Main function which is the entrypoint for testing.

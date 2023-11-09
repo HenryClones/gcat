@@ -5,6 +5,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <errno.h>
+#include "../include_private/wrappers.h"
 
 /**
  * The memory segment can be read and written to, but not executed.

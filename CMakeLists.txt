@@ -1,14 +1,24 @@
+# CMakeLists.txt
+
 cmake_minimum_required(VERSION 3.0)
-project("GCAT" "C")
+
+set(CMAKE_PROJECT_INCLUDE_BEFORE "${CMAKE_CURRENT_LIST_DIR}/common-project-include.in")
+
+project(${project_name} VERSION ${project_version} LANGUAGES ${project_languages})
+enable_testing()
+
+set_property(GLOBAL PROPERTY CMAKE_PROJECT_HOMEPAGE_URL ${project_homepage})
+set_property(GLOBAL PROPERTY PROJECT_HOMEPAGE_URL ${project_homepage})
+set_property(GLOBAL PROPERTY GCAT_HOMEPAGE_URL ${project_homepage})
+
 set(CMAKE_C_STANDARD_REQUIRED "C11")
+set(CMAKE_C_COMPILE_FEATURES "Clang")
 
-# GCAT library
-add_library(gcat SHARED "src/gcat.c" "src/wrappers.c")
-target_include_directories(gcat PUBLIC "include")
-target_link_libraries(gcat "-lpthread")
-target_link_libraries(gcat "-Llibgcat.a>")
+link_directories("include_public")
+link_directories("include_private")
 
-# Test executable
-add_executable(test "src/test.c")
-target_include_directories(test PUBLIC "include_test")
-target_link_libraries(test gcat)
+add_subdirectory("lib")
+add_subdirectory("libwrap")
+
+link_directories("include_other")
+add_subdirectory("tests")
