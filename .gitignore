@@ -12,3 +12,4 @@ test
 # Output
 *.a
 *.so
+TESTS
