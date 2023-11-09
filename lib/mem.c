@@ -11,6 +11,17 @@ size_t gcat_size = 0;
 struct block *last_unused = NULL;
 
 /**
+ * Calculate the size to expand GCAT's memory to, in order to ensure capacity.
+ * @pure
+ * @param size the current size of a memory block.
+ * @return the new size
+ */
+size_t get_newsize(size_t size)
+{
+    return size * 2;
+}
+
+/**
  * Expand the memory afforded to GCAT.
  */
 void expand_mem()
@@ -149,4 +160,81 @@ struct block *get_block_header(void *pointer)
 
     // The block pointer
     return (struct block *) (payload - offsetof(struct block, payload));
+}
+
+/**
+ * Block boundary.
+ * @pure
+ * @param blk the block
+ * @param size the size for where the boundary is
+ * @return the size_t area to place it at
+ */
+size_t *get_block_boundary(void *blk, size_t size)
+{
+    return ((size_t *) blk) + size / sizeof(size_t) - 1;
+}
+
+/**
+ * Initialize a struct block.
+ * @pre there is not a block at position
+ * @post there is now a block at position, with the used bits of prev/next modified
+ * @param position the position of the new block
+ * @param block_size the size of the new block
+ * @param prev the previous block
+ * @param next the next block
+ */
+void make_block(struct block *position, struct block *prev, struct block *next,
+    liberty is_unused, size_t block_size, gcat_reaper finalizer)
+{
+    // Get the block from the pointer
+    struct block blk = *position;
+
+    if (prev == NULL)
+    {
+        prev = position;
+    }
+
+    if (next == NULL)
+    {
+        next = position;
+    }
+
+    // Set the previous and next fields of this block to the correct values
+    if (is_unused == unused)
+    {
+        set_prev(blk, *prev);
+        set_next(blk, *next);
+        if (prev)
+        {
+            // Set up the previous block, as well as the prev_unused value of this one
+            struct block prev_block = *prev;
+            blk.flags.prev_unused = prev_block.flags.unused;
+            prev_block.header.unused_block.pointers.next = position;
+        }
+        else
+        {
+            // Set the previous block to be unused
+            blk.flags.prev_unused = used;
+        }
+
+        if (next)
+        {
+            // Set up the next block if it exists
+            struct block next_block = *next;
+            next_block.flags.prev_unused = unused;
+            next_block.header.unused_block.pointers.prev = position;
+        }
+    }
+    else
+    {
+        update_ref_strong(blk, 1);
+    }
+
+    // Initialize size correctly
+    blk.size = block_size;
+    size_t *boundary = get_block_boundary(position, block_size);
+    *boundary = blk.size;
+
+    // Set the destructor
+    blk.header.used_block.finalizer = finalizer;
 }
