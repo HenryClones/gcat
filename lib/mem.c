@@ -94,7 +94,7 @@ void coalesce(struct block *blk)
     }
 
     // Add a block boundary
-    size_t *boundary = get_block_boundary(blk, blk->size);
+    size_t *boundary = get_block_boundary(*blk);
     *boundary = blk->size;
 }
 
@@ -163,18 +163,6 @@ struct block *get_block_header(void *pointer)
 }
 
 /**
- * Block boundary.
- * @pure
- * @param blk the block
- * @param size the size for where the boundary is
- * @return the size_t area to place it at
- */
-size_t *get_block_boundary(void *blk, size_t size)
-{
-    return ((size_t *) blk) + size / sizeof(size_t) - 1;
-}
-
-/**
  * Initialize a struct block.
  * @pre there is not a block at position
  * @post there is now a block at position, with the used bits of prev/next modified
@@ -231,9 +219,7 @@ void make_block(struct block *position, struct block *prev, struct block *next,
     }
 
     // Initialize size correctly
-    blk.size = block_size;
-    size_t *boundary = get_block_boundary(position, block_size);
-    *boundary = blk.size;
+    set_size(*position, block_size);
 
     // Set the destructor
     blk.header.used_block.finalizer = finalizer;

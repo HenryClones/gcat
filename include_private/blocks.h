@@ -25,10 +25,13 @@ extern "C" {
 #define UB_pointer_lte(ptr1, ptr2) (((uintptr_t) ptr1) <= ((uintptr_t) ptr2))
 #endif
 
-inline int compare_refs(struct block blk);
+int compare_refs(struct block blk);
+size_t *get_block_boundary(struct block blk);
+void set_size(struct block blk, size_t size);
+size_t get_size(struct block blk);
 void set_prev(struct block blk, struct block prev);
-void set_next(struct block blk, struct block next);
 struct block get_prev(struct block blk);
+void set_next(struct block blk, struct block next);
 struct block get_next(struct block blk);
 void free_block(struct block blk);
 void update_ref_total(struct block blk, int delta);

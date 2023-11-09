@@ -2,7 +2,6 @@
 
 void coalesce(struct block *blk);
 size_t get_newsize(size_t size);
-inline size_t *get_block_boundary(void *blk, size_t size);
 inline struct block *get_unused(size_t size);
 void grow_mem(size_t newsize);
 void get_page();
