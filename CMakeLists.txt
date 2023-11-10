@@ -19,10 +19,16 @@ set(CMAKE_C_COMPILE_FEATURES "Clang")
 link_directories("include_public")
 link_directories("include_private")
 
-# The GCAT library
-add_subdirectory("lib")
 # The GCAT wrappers, statically linked
 add_subdirectory("libwrap")
+# The GCAT wrappers, statically linked
+add_subdirectory("libmem")
+# The GCAT wrappers, statically linked
+add_subdirectory("libblocks")
+# The GCAT wrappers, statically linked
+add_subdirectory("libgalloc")
+# The GCAT library, dynamically linked
+add_subdirectory("lib")
 
 # Testing system
 include(CTest)
