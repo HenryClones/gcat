@@ -3,33 +3,79 @@
 #include <stdio.h>
 #include <string.h>
 #include <gcat.h>
+#include "galloc.h"
+#include "mem.h"
 #include "blocks.h"
 #include "wrappers.h"
+
+/**
+ * Test galloc.h.
+ */
+static int galloc_test()
+{
+    return 0;
+}
+
+/**
+ * Test blocks.h.
+ */
+static int blocks_test()
+{
+    return 0;
+}
+
+/**
+ * Test mem.h.
+ */
+static int mem_test()
+{
+    return 0;
+}
+
+/**
+ * Test wrappers.h.
+ */
+static int wrappers_test()
+{
+    return 0;
+}
+
+/**
+ * Test gcat.h.
+ */
+static int gcat_test()
+{
+    return 0;
+}
 
 /**
  * Select a part of gcat to test.
  */
 static int select_test(char *test)
 {
+    if (strcmp(test, "galloc"))
+    {
+        return galloc_test();
+    }
 
     if (strcmp(test, "blocks"))
     {
-        return 0;
+        return blocks_test();
     }
     
     if (strcmp(test, "wrappers"))
     {
-        return 0;
+        return wrappers_test();
     }
     
     if (strcmp(test, "mem"))
     {
-        return 0;
+        return mem_test();
     }
 
     if (strcmp(test, "gcat"))
     {
-        return 0;
+        return gcat_test();
     }
     
     return 1;
