@@ -2,8 +2,8 @@
 extern "C" {
 #endif // __cplusplus
 
-#ifndef GCAT_H
-#define GCAT_H
+#ifndef GCAT_GCAT_H
+#define GCAT_GCAT_H
 
 #ifndef size_t
 #include <stddef.h>
@@ -16,7 +16,7 @@ void *gall(size_t size, void *finalizer);
 void burr(void *pointer);
 // void burr_object(void *pointer);
 
-#endif // GCAT_H
+#endif // GCAT_GCAT_H
 
 #ifdef __cplusplus
 }

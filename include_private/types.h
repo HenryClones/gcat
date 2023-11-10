@@ -2,27 +2,16 @@
 extern "C" {
 #endif // __cplusplus
 
-#pragma once
+#ifndef GCAT_TYPES_H
+#define GCAT_TYPES_H
 
-#ifndef uint8_t
 #include <stdint.h>
-#endif // size_t
-
-#ifndef size_t
 #include <stddef.h>
-#endif
 
-#ifndef gcat_reaper
 typedef void(* gcat_reaper)(void *);
-#endif
 
-#ifndef liberty
 // Determine whether a block is unused or used
 typedef enum {unused, used} liberty;
-#endif
-
-#ifndef GCAT_BLOCK_DEF
-#define GCAT_BLOCK_DEF
 
 #define VARIABLE_LENGTH_ARRAY 1
 // Handle every type of block
@@ -70,9 +59,8 @@ struct block
     // Ends with the size
     uint8_t payload[VARIABLE_LENGTH_ARRAY];
 };
-#endif // GCAT_BLOCK_DEF
 
-#pragma endregion
+#endif // GCAT_TYPES_H
 
 #ifdef __cplusplus
 }
