@@ -21,14 +21,14 @@ static int devzero_fd = -1;
 
 // disable these functions if they do not exist
 // they are just optional, performance enhancing ones
-#ifndef MAP_HUGETLB
-#define MAP_HUGETLB 0
-#endif
-#ifndef MAP_HUGE_2MB
-#define MAP_HUGE_2MB 0
-#endif
+// #ifndef MAP_HUGETLB
+// #define MAP_HUGETLB 0
+// #endif
+// #ifndef MAP_HUGE_2MB
+// #define MAP_HUGE_2MB 0
+// #endif
 // Add anonymous page and hugetlb functionality
-#define GCAT_MANAGED_PAGE_FLAGS (MAP_PRIVATE | MAP_HUGETLB | MAP_HUGE_2MB | MAP_ANONYMOUS)
+#define GCAT_MANAGED_PAGE_FLAGS (MAP_PRIVATE | /* MAP_HUGETLB | MAP_HUGE_2MB | */ MAP_ANONYMOUS)
 
 #ifndef MAP_FAILED
 #define MAP_FAILED ((void *) -1)

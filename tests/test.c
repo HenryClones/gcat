@@ -2,6 +2,7 @@
 #include <assert.h>
 #include <stdio.h>
 #include <string.h>
+#include <sys/mman.h>
 #include <gcat.h>
 #include "galloc.h"
 #include "mem.h"
@@ -25,10 +26,65 @@ static int blocks_test()
 }
 
 /**
- * Test mem.h.
+ * Test mem.h get_mem.
  */
-static int mem_test()
+static int mem_test1()
 {
+    int size = 65536;
+    void *mem = get_mem(size);
+    // Test if it succeeds
+    if (mem == MAP_FAILED)
+    {
+        return EXIT_FAILURE;
+    }
+    // Test if it's not null
+    if (mem == NULL)
+    {
+        return EXIT_FAILURE;
+    }
+    // Test if it's aligned to pages
+    if ((long long int)(mem) % Getpagesize() != 0)
+    {
+        return EXIT_FAILURE;
+    }
+    // Write to page
+    uint64_t *pos = ((uint64_t *)mem);
+    pos = 1;
+    // Write to end of page
+    pos = (uint64_t *)(mem + size - sizeof(uint64_t));
+    pos = 1;
+    return 0;
+}
+
+/**
+ * Test mem.h expandmem.
+ */
+static int mem_test2()
+{
+    int size = 65536;
+    void *mem = get_mem(size);
+    mem = expand_mem(mem, size);
+    // Test if it succeeds
+    if (mem == MAP_FAILED)
+    {
+        return EXIT_FAILURE;
+    }
+    // Test if it's not null
+    if (mem == NULL)
+    {
+        return EXIT_FAILURE;
+    }
+    // Test if it's aligned to pages
+    if ((long long int)(mem) % Getpagesize() != 0)
+    {
+        return EXIT_FAILURE;
+    }
+    // Write to page
+    uint64_t *pos = ((uint64_t *)mem);
+    pos = 1;
+    // Write to end of page
+    pos = (uint64_t *)(mem + size - sizeof(uint64_t));
+    pos = 1;
     return 0;
 }
 
@@ -53,32 +109,38 @@ static int gcat_test()
  */
 static int select_test(char *test)
 {
-    if (strcmp(test, "galloc"))
+    int results = 0;
+    if (!strcmp(test, "galloc"))
     {
-        return galloc_test();
+        results |= galloc_test();
     }
 
-    if (strcmp(test, "blocks"))
+    if (!strcmp(test, "blocks"))
     {
-        return blocks_test();
+        results |= blocks_test();
     }
     
-    if (strcmp(test, "wrappers"))
+    if (!strcmp(test, "wrappers"))
     {
-        return wrappers_test();
+        results |= wrappers_test();
     }
     
-    if (strcmp(test, "mem"))
+    if (!strcmp(test, "mem") || !strcmp(test, "mem1"))
     {
-        return mem_test();
+        results |= mem_test1();
+    }
+    
+    if (!strcmp(test, "mem") && !strcmp(test, "mem2"))
+    {
+        results |= mem_test2();
     }
 
-    if (strcmp(test, "gcat"))
+    if (!strcmp(test, "gcat"))
     {
-        return gcat_test();
+        results |= gcat_test();
     }
     
-    return 1;
+    return results;
 }
 
 /**
@@ -88,7 +150,7 @@ int main(int argc, char **argv)
 {
     if (argc > 1)
     {
-        return select_test(argv[EXIT_FAILURE]);
+        return select_test(argv[1]);
     }
 
     // Create some blocks

@@ -4,8 +4,9 @@
 #include "galloc.h"
 #include "gcat.h"
 
-extern last_unused;
-extern gcat_mem;
+extern struct block *last_unused;
+extern struct block *gcat_mem;
+extern size_t gcat_size;
 
 /**
  * Grab a reference to the pointer for the current function.
@@ -115,7 +116,7 @@ void *gall(size_t size, void *finalizer)
     // If finding a block failed
     if (position == unused)
     {
-        expand_mem();
+        expand_mem(gcat_mem, &gcat_size);
         return gall(size, finalizer);
     }
     else

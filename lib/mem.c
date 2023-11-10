@@ -3,13 +3,13 @@
 
 /**
  * Calculate the size to expand GCAT's memory to, in order to ensure capacity.
- * @pure
  * @param size the current size of a memory block.
  * @return the new size
  */
-static size_t get_newsize(size_t size)
+static size_t get_newsize(size_t *size)
 {
-    return size * 2;
+    *size *= 2;
+    return *size;
 }
 
 /**
@@ -24,9 +24,10 @@ static void *grow_mem(void *mem, size_t size, size_t newsize)
 /**
  * Expand the memory afforded to GCAT.
  */
-void *expand_mem(void *mem, size_t size)
+void *expand_mem(void *mem, size_t *size)
 {
-    return grow_mem(mem, size, get_newsize(size));
+    int current_size = *size;
+    return grow_mem(mem, current_size, get_newsize(size));
 }
 
 /**
