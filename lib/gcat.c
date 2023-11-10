@@ -1,10 +1,11 @@
 #include <stdint.h>
-#include "wrappers.h"
+#include "mem.h"
 #include "blocks.h"
+#include "galloc.h"
 #include "gcat.h"
 
-extern gcat_mem;
 extern last_unused;
+extern gcat_mem;
 
 /**
  * Grab a reference to the pointer for the current function.
@@ -99,14 +100,14 @@ void burr(void *block)
  */
 void *gall(size_t size, void *finalizer)
 {
+    // Fit a size_t in the size for the footer
+    size = size > sizeof(size_t) ? size : sizeof(size_t);
+
     // Initialize gcat_mem if it does not exist
     if (gcat_mem == NULL)
     {
         init_mem();
     }
-
-    // Fit a size_t in the size
-    size += 1;
     
     // Find a block
     struct block *position = get_unused(size);

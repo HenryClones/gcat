@@ -1,13 +1,19 @@
-#include "types.h"
+#ifdef __cplusplus
+extern "C" {
+#endif // __cplusplus
 
-void coalesce(struct block *blk);
-size_t get_newsize(size_t size);
-inline struct block *get_unused(size_t size);
-void grow_mem(size_t newsize);
-void get_page();
-void init_mem();
-void expand_mem();
-inline int is_managed(void *block);
-struct block *get_block_header(void *pointer);
-void make_block(struct block *position, struct block *prev, struct block *next,
-    liberty is_unused, size_t block_size, gcat_reaper finalizer);
+#ifdef GCAT_MEM_H
+#define GCAT_MEM_H
+
+#ifndef size_t
+#include <stddef.h>
+#endif
+
+void *grow_mem(void *mem, size_t size, size_t newsize);
+void *get_mem(size_t size);
+
+#endif // GCAT_MEM_H
+
+#ifdef __cplusplus
+}
+#endif // __cplusplus
