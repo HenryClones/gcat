@@ -63,11 +63,12 @@ static void unixerror_citeoffset(int n, char *stage, char *resource, void *blame
 }
 
 // Cache the results of the below function
-static int getpagesize_cached = 0;
+#define GETPAGESIZE_CACHED_UNSET 0
+static int getpagesize_cached = GETPAGESIZE_CACHED_UNSET;
 
 int Getpagesize()
 {
-    if (!getpagesize_cached)
+    if (getpagesize_cached == GETPAGESIZE_CACHED_UNSET)
     {
         #ifdef getpagesize
         getpagesize_cached = getpagesize();
@@ -186,7 +187,7 @@ void *Mremap(void *addr, size_t oldlength, size_t newlength)
     return block;
 }
 
-
+/*
 int Kill(char *cause, void *address)
 {
     int status = kill(-1, SIGSEGV);
@@ -206,3 +207,4 @@ int Kill_offset(char *cause, void *address, int offset)
     }
     return status;
 }
+*/
