@@ -1,18 +1,6 @@
 #include "blocks.h"
 
 /**
- * Compare the references of a block.
- * @pre blk is used
- * @param blk
- * @return the difference between strong and total users
- */
-int compare_refs(struct block *blk)
-{
-    return blk->header.used_block.users.strong_users -
-        blk->header.used_block.users.total_users;
-}
-
-/**
  * Block boundary.
  * @pure
  * @param blk the block
@@ -24,6 +12,32 @@ size_t *get_block_boundary(struct block *blk)
     size_t *payload = (size_t*) blk->payload;
     size_t payload_offset = get_size(blk) / (sizeof(size_t) / sizeof(*(blk->payload)));
     return payload + payload_offset;
+}
+
+/**
+ * Set this block's used flag.
+ * @param blk this block
+ * @param new the new status of used/free
+ */
+void set_flag(struct block *blk, liberty new, int has_next)
+{
+    blk->flags.unused = new;
+
+    if (has_next)
+    {
+        struct block *next = get_after(blk);
+        next->flags.prev_unused = new;
+    }
+}
+
+/**
+ * Get this block's used flag.
+ * @param blk this block
+ * @return the status of used/free
+ */
+liberty get_flag(struct block *blk)
+{
+    return blk->flags.unused;
 }
 
 /**
@@ -98,11 +112,15 @@ struct block *get_next(struct block *blk)
 }
 
 /**
- * 
+ * Compare the references of a block.
+ * @pre blk is used
+ * @param blk
+ * @return the difference between strong and total users
  */
-void *get_payload(struct block *blk)
+int compare_refs(struct block *blk)
 {
-    return blk->payload;
+    return blk->header.used_block.users.strong_users -
+        blk->header.used_block.users.total_users;
 }
 
 /**
@@ -128,4 +146,41 @@ void update_ref_strong(struct block *blk, int delta)
 void update_ref_total(struct block *blk, int delta)
 {
     blk->header.used_block.users.total_users += delta;
+}
+
+/**
+ * Get the payload of this block.
+ * @param blk the block
+ * @return this block's payload
+ */
+void *get_payload(struct block *blk)
+{
+    return blk->payload;
+}
+
+/**
+ * Get the block after this one.
+ * @param blk this block
+ * @return the block after it
+ */
+struct block *get_after(struct block *blk)
+{
+    int size = get_size(blk);
+    return blk + size + (sizeof(blk) - sizeof(blk->payload));
+}
+
+/**
+ * Get the block before this one, or NULL if it is not possible.
+ * @param blk this block
+ * @return the block before this one, or NULL if this cannot be done
+ */
+struct block *get_before(struct block *blk)
+{
+    if (get_flag(blk) == unused)
+    {
+        // At the end of an unused block there is a size_t
+        size_t *boundary = ((size_t *) blk) - 1;
+        return blk + *boundary;
+    }
+    return NULL;
 }
