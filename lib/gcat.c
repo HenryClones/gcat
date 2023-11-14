@@ -22,7 +22,7 @@ void *hew_function(void *pointer)
     // Add a strong reference to it
     if (blk)
     {
-        update_ref_strong(*blk, 1);
+        update_ref_strong(blk, 1);
     }
     // Return the pointer regardless
     return pointer;
@@ -42,7 +42,7 @@ void *hew_object(void *pointer)
     // Add a strong reference to it
     if (blk)
     {
-        update_ref_total(*blk, 1);
+        update_ref_total(blk, 1);
     }
     // Return the pointer regardless
     return pointer;
@@ -91,7 +91,7 @@ void burr(void *block)
     block -= off;
     // Change it to an if statement
     struct block *actual_block = (struct block *) block;
-    update_ref_strong(*actual_block, -1);
+    update_ref_strong(actual_block, -1);
 }
 
 /**

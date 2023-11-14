@@ -21,19 +21,19 @@ struct block *last_unused = NULL;
  * @pre block is used and has no users and last_unused != NULL
  * @post block will be unusedd up and coalesced
  */
-void free_block(struct block blk)
+void free_block(struct block *blk)
 {
-    if (blk.header.used_block.finalizer)
+    if (blk->header.used_block.finalizer)
     {
         // Execute finalizer over payload
-        blk.header.used_block.finalizer(blk.payload);
+        blk->header.used_block.finalizer(blk->payload);
     }
     // The block is now unusedd
-    blk.flags.unused = unused;
+    blk->flags.unused = unused;
     // Be unused
-    make_block(&blk, last_unused, last_unused, unused, blk.size, NULL);
+    make_block(blk, last_unused, last_unused, unused, blk->size, NULL);
     // And reassign the correct one
-    last_unused = &blk;
+    last_unused = blk;
 }
 
 /**
@@ -81,7 +81,7 @@ void coalesce(struct block *blk)
     }
 
     // Add a block boundary
-    size_t *boundary = get_block_boundary(*blk);
+    size_t *boundary = get_block_boundary(blk);
     *boundary = blk->size;
 }
 
@@ -142,8 +142,8 @@ void make_block(struct block *position, struct block *prev, struct block *next,
     // Set the previous and next fields of this block to the correct values
     if (is_unused == unused)
     {
-        set_prev(blk, *prev);
-        set_next(blk, *next);
+        set_prev(position, prev);
+        set_next(position, next);
         if (prev)
         {
             // Set up the previous block, as well as the prev_unused value of this one
@@ -167,11 +167,11 @@ void make_block(struct block *position, struct block *prev, struct block *next,
     }
     else
     {
-        update_ref_strong(blk, 1);
+        update_ref_strong(position, 1);
     }
 
     // Initialize size correctly
-    set_size(*position, block_size);
+    set_size(position, block_size);
 
     // Set the destructor
     blk.header.used_block.finalizer = finalizer;
