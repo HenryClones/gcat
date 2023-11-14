@@ -21,7 +21,7 @@ static int galloc_test()
 /**
  * Test blocks.h.
  */
-static int blocks_test()
+static int blocks_test1()
 {
     return 0;
 }
@@ -203,9 +203,9 @@ static int select_test(char *test)
         results |= galloc_test();
     }
 
-    if (!strcmp(test, "blocks"))
+    if (!strcmp(test, "blocks") && !strcmp(test, "blocks1"))
     {
-        results |= blocks_test();
+        results |= blocks_test1();
     }
     
     if (!strcmp(test, "wrappers") && !strcmp(test, "wrappers1"))
