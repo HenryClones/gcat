@@ -98,6 +98,14 @@ struct block *get_next(struct block *blk)
 }
 
 /**
+ * 
+ */
+void *get_payload(struct block *blk)
+{
+    return blk->payload;
+}
+
+/**
  * Add a strong reference to the current block.
  * Implementation dependent.
  * @pre blk is a valid block which is currently used
