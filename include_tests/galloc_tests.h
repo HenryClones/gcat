@@ -5,8 +5,7 @@ extern "C" {
 #ifndef GCAT_GALLOC_TESTS_H
 #define GCAT_GALLOC_TESTS_H
 
-int mem_test1();
-int mem_test2();
+int galloc_test1();
 
 #endif // GCAT_GALLOC_TESTS_H
 
