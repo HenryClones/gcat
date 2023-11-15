@@ -1,101 +1,11 @@
 #include <stdlib.h>
-#include <assert.h>
-#include <stdio.h>
 #include <string.h>
-#include <unistd.h>
-#include <sys/mman.h>
 #include <gcat.h>
-#include "galloc.h"
-#include "mem.h"
-#include "blocks.h"
+#include "blocks_tests.h"
+#include "mem_tests.h"
 #include "wrappers_tests.h"
-
-/**
- * Test galloc.h.
- */
-static int galloc_test()
-{
-    return 0;
-}
-
-/**
- * Test blocks.h.
- */
-static int blocks_test1()
-{
-    return 0;
-}
-
-/**
- * Test mem.h get_mem.
- */
-static int mem_test1()
-{
-    int size = 65536;
-    void *mem = get_mem(size);
-    // Test if it succeeds
-    if (mem == MAP_FAILED)
-    {
-        return EXIT_FAILURE;
-    }
-    // Test if it's not null
-    if (mem == NULL)
-    {
-        return EXIT_FAILURE;
-    }
-    // Test if it's aligned to pages
-    if ((long long int)(mem) % getpagesize() != 0)
-    {
-        return EXIT_FAILURE;
-    }
-    // Write to page
-    uint64_t *pos = ((uint64_t *)mem);
-    *pos = 1;
-    // Write to end of page
-    pos = (uint64_t *)(mem + size - sizeof(uint64_t));
-    *pos = 1;
-    return 0;
-}
-
-/**
- * Test mem.h expandmem.
- */
-static int mem_test2()
-{
-    size_t size = 65536;
-    void *mem = get_mem(size);
-    mem = expand_mem(mem, &size);
-    // Test if it succeeds
-    if (mem == MAP_FAILED)
-    {
-        return EXIT_FAILURE;
-    }
-    // Test if it's not null
-    if (mem == NULL)
-    {
-        return EXIT_FAILURE;
-    }
-    // Test if it's aligned to pages
-    if ((long long int)(mem) % getpagesize() != 0)
-    {
-        return EXIT_FAILURE;
-    }
-    // Write to page
-    uint64_t *pos = ((uint64_t *)mem);
-    *pos = 1;
-    // Write to end of page
-    pos = (uint64_t *)(mem + size - sizeof(uint64_t));
-    *pos = 1;
-    return 0;
-}
-
-/**
- * Test gcat.h.
- */
-static int gcat_test()
-{
-    return 0;
-}
+#include "gcat_tests.h"
+#include "galloc_tests.h"
 
 /**
  * Select a part of gcat to test.
@@ -105,7 +15,7 @@ static int select_test(char *test)
     int results = 0;
     if (!strcmp(test, "galloc"))
     {
-        results |= galloc_test();
+        results |= galloc_test1();
     }
 
     if (!strcmp(test, "blocks") && !strcmp(test, "blocks1"))
@@ -140,7 +50,7 @@ static int select_test(char *test)
 
     if (!strcmp(test, "gcat"))
     {
-        results |= gcat_test();
+        results |= gcat_test1();
     }
     
     return results;

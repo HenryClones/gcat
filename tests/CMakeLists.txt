@@ -4,7 +4,7 @@ project("TESTS" "C")
 
 # Test executable
 add_executable(${PROJECT_NAME} "wrappers_tests.c" "mem_tests.c" "blocks_tests.c" "galloc_tests.c" "gcat_tests.c" "test.c")
-target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_SOURCE_DIR}/include_other ${CMAKE_SOURCE_DIR}/include_private ${CMAKE_SOURCE_DIR}/include_public)
+target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_SOURCE_DIR}/include_tests ${CMAKE_SOURCE_DIR}/include_private ${CMAKE_SOURCE_DIR}/include_public)
 target_link_libraries(${PROJECT_NAME} ${project_name})
 target_link_libraries(${PROJECT_NAME} wrappers mem blocks galloc)
 
