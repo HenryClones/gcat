@@ -11,7 +11,6 @@ void init_mem();
 void coalesce(struct block *blk);
 struct block *get_unused(size_t size);
 struct block *get_block_header(void *pointer);
-int is_managed(void *block);
 void make_block(struct block *position, struct block *prev, struct block *next,
     liberty is_unused, size_t block_size, gcat_reaper finalizer);
 

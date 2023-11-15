@@ -11,6 +11,7 @@ extern "C" {
 
 void *expand_mem(void *mem, size_t *size);
 void *get_mem(size_t size);
+int is_managed(void *block);
 
 #endif // GCAT_MEM_H
 
