@@ -64,7 +64,7 @@ static int blocks_test04()
     struct block x;
     size_t y = 100;
     set_size(&x, y);
-    if (get_size(&x) != y)
+    if (get_size(&x) < y)
     {
         return 1;
     }
@@ -72,7 +72,7 @@ static int blocks_test04()
     y = 50;
 
     set_size(&x, y);
-    if (get_size(&x) != y)
+    if (get_size(&x) < y)
     {
         return 1;
     }
@@ -174,7 +174,7 @@ static int blocks_test08()
 static int blocks_test09()
 {
     struct block *xp;
-    char buf[128];
+    uint8_t buf[128]__attribute__((aligned));
     int len = 80;
     uint8_t y = 40;
     xp = (struct block *) buf;
@@ -225,17 +225,16 @@ static int blocks_test10()
 static int blocks_test11()
 {
     struct block x;
+    struct block y;
     set_finalizer(&x, finalizer);
-    struct block z = *(free_block(&x, NULL));
+    struct block z = *(free_block(&x, &x, 0));
     if (!finalizer_ran)
     {
         return 1;
     }
     finalizer_ran = !finalizer_ran;
-    struct block y;
     set_flag(&y, unused, 0);
-    set_finalizer(&x, finalizer);
-    z = *(free_block(&x, &y));
+    z = *(free_block(&y, &x, 1));
     if (!finalizer_ran || get_prevflag(&y) != unused || &z != &x)
     {
         return 1;
@@ -244,50 +243,60 @@ static int blocks_test11()
 }
 
 /**
- * Test blocks.h set_flag.
+ * Test blocks.h get_after.
  */
 static int blocks_test12()
 {
+    // 1. Minimum size
+    struct block x;
+    struct block y;
+    struct block *px = &x;
+    struct block *py = &y;
+    set_size(px, 1);
+    set_size(py, 1);
+    if (get_after(px) != py)
+    {
+        return 1;
+    }
+    // 2. Bigger blocks
+    uint8_t buf[512]__attribute__((aligned));
+    px = (struct block *)buf;
+    size_t size_x = 230;
+    set_size(px, size_x);
+    py = get_after(px);
+    size_t size_y = 27;
+    set_size(py, size_y);
+    if (get_after(px) != py || py < px + size_x + sizeof(*px) - sizeof(px->payload))
+    {
+        return 1;
+    }
     return 0;
 }
 
 /**
- * Test blocks.h set_flag.
+ * Test blocks.h get_before.
  */
 static int blocks_test13()
 {
-    return 0;
-}
-
-/**
- * Test blocks.h set_flag.
- */
-static int blocks_test14()
-{
-    return 0;
-}
-
-/**
- * Test blocks.h set_flag.
- */
-static int blocks_test15()
-{
-    return 0;
-}
-
-/**
- * Test blocks.h set_flag.
- */
-static int blocks_test16()
-{
-    return 0;
-}
-
-/**
- * Test blocks.h set_flag.
- */
-static int blocks_test17()
-{
+    // 1a. Minimum size, used
+    struct block x;
+    struct block y;
+    struct block *px = &x;
+    struct block *py = &y;
+    set_flag(px, used, 0);
+    set_size(px, 1);
+    free_block(px, px, 1);
+    set_flag(py, used, 0);
+    set_size(py, 1);
+    if (get_before(py) != NULL)
+    {
+        return 1;
+    }
+    free_block(py, px, 0);
+    if (get_before(py) != px)
+    {
+        return 1;
+    }
     return 0;
 }
 
@@ -360,21 +369,6 @@ int blocks_tests(char *test)
     if (!strcmp(test, "blocks") && !strcmp(test, "blocks13"))
     {
         results |= blocks_test13();
-    }
-    
-    if (!strcmp(test, "blocks") && !strcmp(test, "blocks14"))
-    {
-        results |= blocks_test14();
-    }
-    
-    if (!strcmp(test, "blocks") && !strcmp(test, "blocks15"))
-    {
-        results |= blocks_test15();
-    }
-    
-    if (!strcmp(test, "blocks") && !strcmp(test, "blocks16"))
-    {
-        results |= blocks_test16();
     }
     
     return 0;

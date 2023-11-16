@@ -72,7 +72,7 @@ void update_ref_strong(struct block *blk, int delta);
 void *get_payload(struct block *blk);
 void set_finalizer(struct block *blk, gcat_reaper destructor);
 gcat_reaper get_finalizer(struct block *blk);
-struct block *free_block(struct block *blk, struct block *next);
+struct block *free_block(struct block *blk, struct block *next, int has_after);
 struct block *get_after(struct block *blk);
 struct block *get_before(struct block *blk);
 

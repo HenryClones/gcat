@@ -62,11 +62,16 @@ size_t get_size(struct block *blk)
 
 /**
  * Set a block's size.
- * @param blk the block to set the size of
- * @return the size of the block
+ * @param blk the block to set the size of, it will be at least size
  */
 void set_size(struct block *blk, size_t size)
 {
+    // Should be alignof?
+    #ifndef alignof
+    #define alignof sizeof
+    #endif
+    #define padof(type, x) alignof(type) - x % alignof(type)
+    size += padof(*blk, size);
     blk->size = size;
     
     // Bottom of block has boundary tag if free
@@ -197,12 +202,12 @@ gcat_reaper get_finalizer(struct block *blk)
 }
 
 /**
- * Free a block.
+ * Free a block. next != NULL
  * @pre block is used and has no users and last_unused != NULL
  * @post block will be freed up and coalesced
- * @param next the next block in the chain, likely the last free one
+ * @param next the next block in the chain, likely the last free one, or blk
  */
-struct block *free_block(struct block *blk, struct block *next)
+struct block *free_block(struct block *blk, struct block *next, int has_after)
 {
     if (get_finalizer(blk) != NULL)
     {
@@ -210,18 +215,10 @@ struct block *free_block(struct block *blk, struct block *next)
         get_finalizer(blk)(blk->payload);
     }
     // The block is now unused
-    if (next != NULL)
-    {
-        set_prev(blk, get_prev(next));
-        set_next(blk, next);
-        // Be unused
-        set_flag(blk, unused, 1);
-    }
-    else
-    {
-        // Be unused
-        set_flag(blk, unused, 0);
-    }
+    set_prev(blk, get_prev(next));
+    set_next(blk, next);
+    // Be unused
+    set_flag(blk, unused, has_after);
     set_size(blk, get_size(blk));
     // And reassign the correct one
     return blk;
@@ -235,7 +232,10 @@ struct block *free_block(struct block *blk, struct block *next)
 struct block *get_after(struct block *blk)
 {
     int size = get_size(blk);
-    return blk + size + (sizeof(blk) - sizeof(blk->payload));
+    // Size should be a multiple of max_align
+    // size_t will fit at end of size
+    void *close = blk + size + sizeof(blk) - sizeof(blk->payload);
+    return close;
 }
 
 /**
@@ -245,7 +245,7 @@ struct block *get_after(struct block *blk)
  */
 struct block *get_before(struct block *blk)
 {
-    if (get_flag(blk) == unused)
+    if (get_prevflag(blk) == unused)
     {
         // At the end of an unused block there is a size_t
         size_t *boundary = ((size_t *) blk) - 1;
