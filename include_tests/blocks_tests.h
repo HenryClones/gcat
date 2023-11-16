@@ -5,7 +5,7 @@ extern "C" {
 #ifndef GCAT_BLOCKS_TESTS_H
 #define GCAT_BLOCKS_TESTS_H
 
-int blocks_test1();
+int blocks_tests(char *test);
 
 #endif // GCAT_BLOCKS_TESTS_H
 

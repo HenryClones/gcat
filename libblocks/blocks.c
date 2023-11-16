@@ -41,6 +41,16 @@ liberty get_flag(struct block *blk)
 }
 
 /**
+ * Get this block's used flag.
+ * @param blk this block
+ * @return the status of used/free
+ */
+liberty get_prevflag(struct block *blk)
+{
+    return blk->flags.prev_unused;
+}
+
+/**
  * Get a block's size.
  * @param blk the block to get the size of
  * @return the size of the block

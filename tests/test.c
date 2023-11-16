@@ -19,10 +19,7 @@ static int select_test(char *test)
         results |= galloc_test1();
     }
 
-    if (!strcmp(test, "blocks") && !strcmp(test, "blocks1"))
-    {
-        results |= blocks_test1();
-    }
+    results |= blocks_tests(test);
     
     if (!strcmp(test, "wrappers") && !strcmp(test, "wrappers1"))
     {

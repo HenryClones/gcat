@@ -57,6 +57,7 @@ struct block
 size_t *get_block_boundary(struct block *blk);
 void set_flag(struct block *blk, liberty new, int has_next);
 liberty get_flag(struct block *blk);
+liberty get_prevflag(struct block *blk);
 void set_size(struct block *blk, size_t size);
 size_t get_size(struct block *blk);
 void set_prev(struct block *blk, struct block *prev);
