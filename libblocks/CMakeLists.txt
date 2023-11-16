@@ -2,7 +2,7 @@
 
 project("blocks" "C")
 
-set(SOURCE_FILES "blocks.c")
+set(SOURCE_FILES "block_properties.c" "block_array.c")
 
 # Wrapper library
 add_library(${PROJECT_NAME} STATIC ${SOURCE_FILES})

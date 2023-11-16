@@ -116,7 +116,6 @@ void *gall(size_t size, void *finalizer)
     // If finding a block failed
     if (position == unused)
     {
-        expand_mem(gcat_mem, &gcat_size);
         return gall(size, finalizer);
     }
     else

@@ -1,5 +1,6 @@
 #include <sys/mman.h>
 #include <sys/resource.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <signal.h>
 #include <fcntl.h>
@@ -80,15 +81,72 @@ int Getpagesize()
     return getpagesize_cached;
 }
 
-#ifdef SECURE
-/**
- * Add guard pages
- */
 #define GCAT_GUARD_PAGE_PROT (PROT_NONE)
 #define GCAT_GUARD_PAGE_FLAGS (MAP_FIXED | MAP_PRIVATE)
-#define GUARD_PAGE_BEFORE(addr) (addr - getpagesize_cached)
-#define GUARD_PAGE_AFTER(addr, size) ((addr + size) / getpagesize_cached * getpagesize_cached)
-#endif
+
+/**
+ * Get the position of the first guard page.
+ */
+static void *guard_page_before_position(void *base)
+{
+    return base - Getpagesize();
+}
+
+/**
+ * Create the first guard page.
+ */
+static void create_guard_page_before(void *addr)
+{
+    void *throwaway = mmap(guard_page_before_position(addr),
+        1, GCAT_GUARD_PAGE_PROT, GCAT_GUARD_PAGE_FLAGS, devzero_fd, 0);
+    if (throwaway == MAP_FAILED)
+    {
+        unixerror_simple(errno, "initializing first guard page with mmap function");
+    }
+}
+
+// First guard page should stay at the first address
+
+/**
+ * Get the position of the second guard page.
+ */
+static void *guard_page_after_position(void *base, size_t size)
+{
+    return (base + size) - ((uintptr_t) (base + size) % (uintptr_t) Getpagesize());
+}
+
+/**
+ * Create the second guard page.
+ */
+static void create_guard_page_after(void *addr, size_t length)
+{
+    void *throwaway = mmap(guard_page_after_position(addr, length),
+        1, GCAT_GUARD_PAGE_PROT, GCAT_GUARD_PAGE_FLAGS, devzero_fd, 0);
+    if (throwaway == MAP_FAILED)
+    {
+        unixerror_simple(errno, "initializing second guard page with mmap function");
+    }
+}
+
+/**
+ * Move the second guard page.
+ */
+static void move_guard_page_after(void *addr, size_t old_length, size_t new_length)
+{
+    // mremap is linux exclusive!
+    #ifdef mremap
+    // Move the guard pages
+    void *throwaway = mremap(guard_page_after_position(addr, old_length), guard_page_before_position(addr, new_length));
+    #else
+    void *throwaway = mmap(guard_page_after_position(addr, old_length),
+        1, GCAT_GUARD_PAGE_PROT, GCAT_GUARD_PAGE_FLAGS, devzero_fd, 0);
+    #endif
+
+    if (throwaway == MAP_FAILED || addr != throwaway)
+    {
+        unixerror_simple(errno, "moving second guard page with mremap function");
+    }
+}
 
 void *Mmap(void *addr, size_t length)
 {
@@ -117,94 +175,31 @@ void *Mmap(void *addr, size_t length)
         unixerror_simple(errno, "initializing page with mmap function");
     }
     // Add the guard page creation
-    #ifdef SECURE
-    void *throwaway = mmap(addr - Getpagesize(), GCAT_MANAGED_PAGE_PROT,
-        GCAT_MANAGED_PAGE_FLAGS, devzero_fd, 0);
-    if (throwaway == MAP_FAILED)
-    {
-        unixerror_simple(errno, "initializing first guard page with mmap function");
-    }
-    void *throwaway = mmap(GUARD_PAGE_AFTER(addr, length), GCAT_GUARD_PAGE_PROT,
-        GCAT_GUARD_PAGE_FLAGS, devzero_fd, 0);
-    if (throwaway == MAP_FAILED)
-    {
-        unixerror_simple(errno, "initializing second guard page with mmap function");
-    }
-    #endif
     return block;
 }
 
-void *Mremap(void *addr, size_t oldlength, size_t newlength)
+void *Mremap(void *addr, size_t old_length, size_t new_length)
 {
     // Set the soft memory limit
-    struct rlimit *limits;
-    getrlimit(RLIMIT_AS, limits);
-    limits->rlim_max += newlength - oldlength;
-    setrlimit(RLIMIT_AS, limits);
+    struct rlimit limits;
+    getrlimit(RLIMIT_AS, &limits);
+    limits.rlim_max += new_length - old_length;
+    setrlimit(RLIMIT_AS, &limits);
+
     // before remapping the rest of the memory
     #ifdef mremap
-
-    // Move the guard pages
-    #ifdef SECURE
-    void *throwaway = mremap(GUARD_PAGE_BEFORE(addr));
-    if (block == MAP_FAILED || addr != block)
-    {
-        unixerror_simple(errno, "moving first guard page with mremap function");
-    }
-    void *throwaway = mremap(addr - GUARD_PAGE_AFTER(addr, length));
-    if (block == MAP_FAILED || addr != block)
-    {
-        unixerror_simple(errno, "moving second guard page with mremap function");
-    }
-    #endif
-
-    void *block = mremap(addr, oldlength, newlength, 0);
+    void *block = mremap(addr, old_length, new_length, 0);
     #else
-
-    // Move the guard pages
-    #ifdef SECURE
-    void *block =  mmap(addr, newlength, GCAT_MANAGED_PAGE_PROT,
-        GCAT_MANAGED_PAGE_FLAGS | MAP_FIXED, devzero_fd, 0);
-    if (throwaway == MAP_FAILED || GUARD_PAGE_BEFORE(addr) != block)
-    {
-        unixerror_simple(errno, "expanding page with mremap function");
-    }
-    void *block =  mmap(addr, newlength, GCAT_MANAGED_PAGE_PROT,
-        GCAT_MANAGED_PAGE_FLAGS | MAP_FIXED, devzero_fd, 0);
-    if (throwaway == MAP_FAILED || GUARD_PAGE_BEFORE(addr) != throwaway)
-    {
-        unixerror_simple(errno, "expanding page with mremap function");
-    }
-    #endif
-
-    void *block =  mmap(addr, newlength, GCAT_MANAGED_PAGE_PROT,
+    void *block =  mmap(addr, new_length, GCAT_MANAGED_PAGE_PROT,
         GCAT_MANAGED_PAGE_FLAGS | MAP_FIXED, devzero_fd, 0);
     #endif
+    
+    // finish with guard pages
+    move_guard_page_after(addr, old_length, new_length);
+
     if (block == MAP_FAILED || addr != block)
     {
         unixerror_simple(errno, "expanding page with mremap function");
     }
     return block;
 }
-
-/*
-int Kill(char *cause, void *address)
-{
-    int status = kill(-1, SIGSEGV);
-    if (status == -1)
-    {
-        unixerror_citeobject(errno, "kill function causing SIGSEGV due to", cause, address);
-    }
-    return status;
-}
-
-int Kill_offset(char *cause, void *address, int offset)
-{
-    int status = kill(-1, SIGSEGV);
-    if (status == -1)
-    {
-        unixerror_citeoffset(errno, "kill function causing SIGSEGV due to", cause, address, offset);
-    }
-    return status;
-}
-*/

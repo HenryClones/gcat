@@ -10,8 +10,8 @@
  */
 int mem_test1()
 {
-    int size = 65536;
-    void *mem = get_mem(size);
+    void *mem = get_mem(NULL);
+    size_t size = getpagesize();
     // Test if it succeeds
     if (mem == MAP_FAILED)
     {
@@ -31,7 +31,7 @@ int mem_test1()
     uint64_t *pos = ((uint64_t *)mem);
     *pos = 1;
     // Write to end of page
-    pos = (uint64_t *)(mem + size - sizeof(uint64_t));
+    pos = (uint64_t *) get_mem(mem + size - sizeof(uint64_t));
     *pos = 1;
     return 0;
 }
@@ -41,9 +41,9 @@ int mem_test1()
  */
 int mem_test2()
 {
+    void *mem = get_mem(NULL);
     size_t size = 65536;
-    void *mem = get_mem(size);
-    mem = expand_mem(mem, &size);
+    void *end = get_mem(mem + size);
     // Test if it succeeds
     if (mem == MAP_FAILED)
     {
@@ -63,7 +63,7 @@ int mem_test2()
     uint64_t *pos = ((uint64_t *)mem);
     *pos = 1;
     // Write to end of page
-    pos = (uint64_t *)(mem + size - sizeof(uint64_t));
+    pos = (uint64_t *)(end - sizeof(uint64_t));
     *pos = 1;
     return 0;
 }

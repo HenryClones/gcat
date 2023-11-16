@@ -9,8 +9,7 @@ extern "C" {
 #include <stddef.h>
 #endif
 
-void *expand_mem(void *mem, size_t *size);
-void *get_mem(size_t size);
+void *get_mem(void *addr);
 int is_managed(void *block);
 
 #endif // GCAT_MEM_H
