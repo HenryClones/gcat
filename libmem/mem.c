@@ -3,30 +3,6 @@
 #include "blocks.h"
 #include <stdint.h>
 
-#ifndef NO_UB
-/**
- * This can compare two pointers for being greater than or equal to each other.
- * This is undefined behavior, and only works for pointers within register size,
- * as well as only working on flat architectures.
- */
-#define UB_pointer_gte(ptr1, ptr2) (((uintptr_t) ptr1) >= ((uintptr_t) ptr2))
-
-/**
- * This can compare two pointers for being less than or equal to each other.
- * This is undefined behavior, and only works for pointers within register size,
- * as well as only working on flat architectures.
- */
-#define UB_pointer_lte(ptr1, ptr2) (((uintptr_t) ptr1) <= ((uintptr_t) ptr2))
-#endif // NO_UB
-
-// Gcat's memory region
-struct block *gcat_mem = NULL;
-// The size of gcat's memory region
-size_t gcat_size = GCAT_MANAGED_PAGE_SIZE;
-
-// The last unused block by gcat
-struct block *last_unused = NULL;
-
 /**
  * Calculate the size to expand GCAT's memory to, in order to ensure capacity.
  * @param size the current size of a memory block.
@@ -63,15 +39,4 @@ void *expand_mem(void *mem, size_t *size)
 void *get_mem(size_t size)
 {
     return Mmap(NULL, size);
-}
-
-/**
- * Determine if a pointer is to GCAT's managed memory.
- * @param block the pointer to check
- * @return 1 if it is in GCAT's spaced, 0 otherwise
- */
-int is_managed(void *block)
-{
-    return UB_pointer_gte(block, (void *) (gcat_mem->payload)) &&
-        UB_pointer_lte(block, (void *) (gcat_mem + gcat_size));
 }
