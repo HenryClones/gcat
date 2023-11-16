@@ -371,5 +371,5 @@ int blocks_tests(char *test)
         results |= blocks_test13();
     }
     
-    return 0;
+    return results;
 }
