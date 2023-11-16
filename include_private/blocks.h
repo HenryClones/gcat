@@ -55,7 +55,8 @@ struct block
     uint8_t payload[VARIABLE_LENGTH_ARRAY];
 } __attribute__((aligned));
 
-size_t *get_block_boundary(struct block *blk);
+// block_properties.c
+
 void set_flag(struct block *blk, liberty new, int has_next);
 liberty get_flag(struct block *blk);
 liberty get_prevflag(struct block *blk);
@@ -72,9 +73,15 @@ void update_ref_strong(struct block *blk, int delta);
 void *get_payload(struct block *blk);
 void set_finalizer(struct block *blk, gcat_reaper destructor);
 gcat_reaper get_finalizer(struct block *blk);
-struct block *free_block(struct block *blk, struct block *next, int has_after);
+
+// block_array.c
+
+size_t block_full_size(struct block *blk);
+size_t *get_block_boundary(struct block *blk);
 struct block *get_after(struct block *blk);
 struct block *get_before(struct block *blk);
+struct block *coalesce(struct block *min, struct block *max, struct block *blk, size_t desired_size);
+struct block *free_block(struct block *blk, struct block *next, int has_after);
 
 #endif // GCAT_BLOCKS_H
 

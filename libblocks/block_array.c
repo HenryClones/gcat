@@ -1,6 +1,14 @@
 #include "blocks.h"
 
 /**
+ * Get the full size of this block. This counts headers/other fragmentation.
+ */
+size_t block_full_size(struct block *blk)
+{
+    return blk->size + sizeof(struct block) - sizeof(blk->payload);
+}
+
+/**
  * Block boundary.
  * @pure
  * @param blk the block
@@ -12,6 +20,34 @@ size_t *get_block_boundary(struct block *blk)
     size_t *payload = (size_t*) blk->payload;
     size_t payload_offset = get_size(blk) / (sizeof(size_t) / sizeof(*(blk->payload)));
     return payload + payload_offset;
+}
+
+/**
+ * Coalesce all unused blocks around this one in the best way possible.
+ * @pre blk is unused
+ * @post blk may not be valid and is agglomerated as a larger unused block
+ */
+struct block *coalesce(struct block *min, struct block *max, struct block *blk, size_t desired_size)
+{
+    // Blocks after this one
+    struct block *after;
+    for (after = get_after(blk);
+        blk->size < desired_size && after >= min && after < max && get_flag(after) == unused;
+        after = get_after(blk))
+    {
+        blk->size += block_full_size(after);
+    }
+
+    // Blocks before this one
+    struct block *before;
+    for (before = get_before(blk);
+        blk->size < desired_size && before != NULL && before >= min && before < max;
+        blk = before, before = get_before(blk))
+    {
+        before->size += blk->size;
+    }
+
+    return blk;
 }
 
 /**
@@ -47,8 +83,7 @@ struct block *get_after(struct block *blk)
     int size = get_size(blk);
     // Size should be a multiple of max_align
     // size_t will fit at end of size
-    void *close = blk + size + sizeof(blk) - sizeof(blk->payload);
-    return close;
+    return blk + block_full_size(blk);
 }
 
 /**

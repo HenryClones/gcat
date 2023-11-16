@@ -3,17 +3,9 @@
 #include "blocks_tests.h"
 
 /**
- * Test blocks.h set_flag.
- */
-static int blocks_test01()
-{
-    return 0;
-}
-
-/**
  * Test blocks.h set_flag with no next node.
  */
-static int blocks_test02()
+static int blocks_test01()
 {
     // 1a. set value
     struct block x;
@@ -35,7 +27,7 @@ static int blocks_test02()
 /**
  * Test blocks.h set_flag with a next node.
  */
-static int blocks_test03()
+static int blocks_test02()
 {
     // 2a: next=true
     struct block x;
@@ -59,7 +51,7 @@ static int blocks_test03()
 /**
  * Test blocks.h set_size.
  */
-static int blocks_test04()
+static int blocks_test03()
 {
     struct block x;
     size_t y = 100;
@@ -83,7 +75,7 @@ static int blocks_test04()
 /**
  * Test blocks.h set_prev.
  */
-static int blocks_test05()
+static int blocks_test04()
 {
     struct block x;
     struct block y;
@@ -103,7 +95,7 @@ static int blocks_test05()
 /**
  * Test blocks.h set_next.
  */
-static int blocks_test06()
+static int blocks_test05()
 {
     struct block x;
     struct block y;
@@ -123,7 +115,7 @@ static int blocks_test06()
 /**
  * Test blocks.h get_ref_strong.
  */
-static int blocks_test07()
+static int blocks_test06()
 {
     struct block x;
     struct block y;
@@ -147,7 +139,7 @@ static int blocks_test07()
 /**
  * Test blocks.h get_ref_total.
  */
-static int blocks_test08()
+static int blocks_test07()
 {
     struct block x;
     struct block y;
@@ -171,7 +163,7 @@ static int blocks_test08()
 /**
  * Test blocks.h get_payload.
  */
-static int blocks_test09()
+static int blocks_test08()
 {
     struct block *xp;
     uint8_t buf[128]__attribute__((aligned));
@@ -203,7 +195,7 @@ static void finalizer(void *payload)
 /**
  * Test blocks.h set_finalizer.
  */
-static int blocks_test10()
+static int blocks_test09()
 {
     struct block x;
     set_finalizer(&x, finalizer);
@@ -222,7 +214,7 @@ static int blocks_test10()
 /**
  * Test blocks.h free_block.
  */
-static int blocks_test11()
+static int blocks_test10()
 {
     struct block x;
     struct block y;
@@ -245,7 +237,7 @@ static int blocks_test11()
 /**
  * Test blocks.h get_after.
  */
-static int blocks_test12()
+static int blocks_test11()
 {
     // 1. Minimum size
     struct block x;
@@ -276,7 +268,7 @@ static int blocks_test12()
 /**
  * Test blocks.h get_before.
  */
-static int blocks_test13()
+static int blocks_test12()
 {
     // 1a. Minimum size, used
     struct block x;
@@ -298,6 +290,35 @@ static int blocks_test13()
         return 1;
     }
     return 0;
+}
+
+/**
+ * Test blocks.h get_full_size.
+ */
+static int blocks_test13()
+{
+    struct block x;
+    size_t size = 300;
+    set_size(&x, size);
+    struct block *py;
+    uint8_t buf[400];
+    py = (struct block *) buf;
+    set_size(py, size);
+    struct block *pz = get_after(py);
+    set_size(pz, 10);
+    return block_full_size(&x) != block_full_size(py) || block_full_size(pz) == block_full_size(&x);
+}
+
+/**
+ * Test blocks.h get_block_boundary.
+ */
+static int blocks_test14()
+{
+    uint8_t buf[30];
+    struct block *px;
+    px = (struct block *) buf;
+    set_size(px, sizeof(size_t));
+    return get_block_boundary(px) != (size_t *) px->payload;
 }
 
 /**
@@ -369,6 +390,11 @@ int blocks_tests(char *test)
     if (!strcmp(test, "blocks") && !strcmp(test, "blocks13"))
     {
         results |= blocks_test13();
+    }
+    
+    if (!strcmp(test, "blocks") && !strcmp(test, "blocks14"))
+    {
+        results |= blocks_test14();
     }
     
     return results;

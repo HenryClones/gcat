@@ -8,8 +8,8 @@ target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_SOURCE_DIR}/include_t
 target_link_libraries(${PROJECT_NAME} ${project_name})
 target_link_libraries(${PROJECT_NAME} wrappers mem blocks galloc)
 
-add_test(NAME TestMem COMMAND ${PROJECT_NAME} mem)
-add_test(NAME TestGalloc COMMAND ${PROJECT_NAME} galloc)
-add_test(NAME TestBlocks COMMAND ${PROJECT_NAME} blocks)
 add_test(NAME TestWrappers COMMAND ${PROJECT_NAME} wrappers)
+add_test(NAME TestMem COMMAND ${PROJECT_NAME} mem)
+add_test(NAME TestBlocks COMMAND ${PROJECT_NAME} blocks)
+add_test(NAME TestGalloc COMMAND ${PROJECT_NAME} galloc)
 add_test(NAME TestGcat COMMAND ${PROJECT_NAME} gcat)

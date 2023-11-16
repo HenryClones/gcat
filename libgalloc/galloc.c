@@ -1,12 +1,6 @@
 #include "galloc.h"
 #include "mem.h"
-#include "stddef.h"
 #include "types.h"
-
-/**
- * The initial size of GCAT's garbage collected pages.
- */
-#define GCAT_MANAGED_PAGE_SIZE ((size_t) 65536)
 
 // The last unused block by gcat
 struct block *last_unused = NULL;
@@ -28,36 +22,6 @@ struct block *get_unused(size_t size)
         position = position->header.unused_block.pointers.next
         );
     return position;
-}
-
-/**
- * Coalesce all unused blocks around this one.
- * @pre blk is unused
- * @post blk may not be valid and is agglomerated as a larger unused block
- */
-void coalesce(struct block *blk)
-{
-    struct block *next = blk + blk->size;
-    // Next block unused coalesce
-    if (next->flags.unused == unused)
-    {
-        blk->header.unused_block.pointers.next = next->header.unused_block.pointers.next;
-        blk->size += next->size;
-    }
-    // Previous block unused coalesce
-    if (blk->flags.prev_unused == unused)
-    {
-        size_t size = *(((size_t *) blk) - 1);
-        struct block *prev = blk - size;
-        prev->size += blk->size;
-        blk->header.unused_block.pointers.prev = prev->header.unused_block.pointers.prev;
-        prev->header = blk->header;
-        blk = prev;
-    }
-
-    // Add a block boundary
-    size_t *boundary = get_block_boundary(blk);
-    *boundary = blk->size;
 }
 
 /**
