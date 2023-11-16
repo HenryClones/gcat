@@ -70,7 +70,7 @@ void set_size(struct block *blk, size_t size)
     blk->size = size;
     
     // Bottom of block has boundary tag if free
-    if (blk->flags.unused == unused)
+    if (get_flag(blk) == unused)
     {
         size_t *boundary = get_block_boundary(blk);
         *boundary = size;
@@ -122,15 +122,13 @@ struct block *get_next(struct block *blk)
 }
 
 /**
- * Compare the references of a block.
+ * Get the strong references of a block.
  * @pre blk is used
- * @param blk
- * @return the difference between strong and total users
+ * @return the strong users
  */
-int compare_refs(struct block *blk)
+int get_ref_strong(struct block *blk)
 {
-    return blk->header.used_block.users.strong_users -
-        blk->header.used_block.users.total_users;
+    return blk->header.used_block.users.strong_users;
 }
 
 /**
@@ -144,6 +142,16 @@ void update_ref_strong(struct block *blk, int delta)
 {
     blk->header.used_block.users.strong_users += delta;
     update_ref_total(blk, delta);
+}
+
+/**
+ * Get the total references of a block.
+ * @pre blk is used
+ * @return the total users
+ */
+int get_ref_total(struct block *blk)
+{
+    return blk->header.used_block.users.total_users;
 }
 
 /**
@@ -166,6 +174,57 @@ void update_ref_total(struct block *blk, int delta)
 void *get_payload(struct block *blk)
 {
     return blk->payload;
+}
+
+/**
+ * Set blk's finalizer.
+ * @pre blk is a valid block which is currently used
+ * @param blk the pointer to the block in GCAT to add a reference to
+ */
+void set_finalizer(struct block *blk, gcat_reaper destructor)
+{
+    blk->header.used_block.finalizer = destructor;
+}
+
+/**
+ * Get blk's finalizer.
+ * @pre blk is a valid block which is currently used
+ * @param blk the pointer to the block in GCAT to add a reference to
+ */
+gcat_reaper get_finalizer(struct block *blk)
+{
+    return blk->header.used_block.finalizer;
+}
+
+/**
+ * Free a block.
+ * @pre block is used and has no users and last_unused != NULL
+ * @post block will be freed up and coalesced
+ * @param next the next block in the chain, likely the last free one
+ */
+struct block *free_block(struct block *blk, struct block *next)
+{
+    if (get_finalizer(blk) != NULL)
+    {
+        // Execute finalizer over payload
+        get_finalizer(blk)(blk->payload);
+    }
+    // The block is now unused
+    if (next != NULL)
+    {
+        set_prev(blk, get_prev(next));
+        set_next(blk, next);
+        // Be unused
+        set_flag(blk, unused, 1);
+    }
+    else
+    {
+        // Be unused
+        set_flag(blk, unused, 0);
+    }
+    set_size(blk, get_size(blk));
+    // And reassign the correct one
+    return blk;
 }
 
 /**

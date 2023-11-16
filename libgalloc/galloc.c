@@ -33,26 +33,6 @@ size_t gcat_size = GCAT_MANAGED_PAGE_SIZE;
 struct block *last_unused = NULL;
 
 /**
- * Free a block.
- * @pre block is used and has no users and last_unused != NULL
- * @post block will be unusedd up and coalesced
- */
-void free_block(struct block *blk)
-{
-    if (blk->header.used_block.finalizer)
-    {
-        // Execute finalizer over payload
-        blk->header.used_block.finalizer(blk->payload);
-    }
-    // The block is now unusedd
-    blk->flags.unused = unused;
-    // Be unused
-    make_block(blk, last_unused, last_unused, unused, blk->size, NULL);
-    // And reassign the correct one
-    last_unused = blk;
-}
-
-/**
  * Get the next unused block above a certain size.
  * @pre there is at least one unused block in gcat_mem
  * @param size the size of the block to get

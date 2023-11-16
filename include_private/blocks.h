@@ -6,6 +6,7 @@ extern "C" {
 #define GCAT_BLOCKS_H
 
 #include "types.h"
+#include <stdint.h>
 
 #define VARIABLE_LENGTH_ARRAY 1
 // Handle every type of block
@@ -64,11 +65,14 @@ void set_prev(struct block *blk, struct block *prev);
 struct block *get_prev(struct block *blk);
 void set_next(struct block *blk, struct block *next);
 struct block *get_next(struct block *blk);
-int compare_refs(struct block *blk);
+int get_ref_total(struct block *blk);
 void update_ref_total(struct block *blk, int delta);
+int get_ref_strong(struct block *blk);
 void update_ref_strong(struct block *blk, int delta);
 void *get_payload(struct block *blk);
-void free_block(struct block *blk);
+void set_finalizer(struct block *blk, gcat_reaper destructor);
+gcat_reaper get_finalizer(struct block *blk);
+struct block *free_block(struct block *blk, struct block *next);
 struct block *get_after(struct block *blk);
 struct block *get_before(struct block *blk);
 

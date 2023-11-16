@@ -4,8 +4,6 @@ extern "C" {
 
 #ifndef GCAT_TYPES_H
 #define GCAT_TYPES_H
-
-#include <stdint.h>
 #include <stddef.h>
 
 typedef void(* gcat_reaper)(void *);
