@@ -32,5 +32,5 @@ add_subdirectory("lib")
 
 # Testing system
 include(CTest)
-link_directories("include_other")
+link_directories("include_tests")
 add_subdirectory("tests")

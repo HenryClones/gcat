@@ -1,10 +1,23 @@
 #include "mem.h"
 #include "wrappers.h"
+#include "blocks.h"
+#include <stdint.h>
+
+#ifndef NO_UB
+/**
+ * This can compare two pointers for being greater than or equal to each other.
+ * This is undefined behavior, and only works for pointers within register size,
+ * as well as only working on flat architectures.
+ */
+#define UB_pointer_gte(ptr1, ptr2) (((uintptr_t) ptr1) >= ((uintptr_t) ptr2))
 
 /**
- * The initial size of GCAT's garbage collected pages.
+ * This can compare two pointers for being less than or equal to each other.
+ * This is undefined behavior, and only works for pointers within register size,
+ * as well as only working on flat architectures.
  */
-#define GCAT_MANAGED_PAGE_SIZE ((size_t) 65536)
+#define UB_pointer_lte(ptr1, ptr2) (((uintptr_t) ptr1) <= ((uintptr_t) ptr2))
+#endif // NO_UB
 
 // Gcat's memory region
 struct block *gcat_mem = NULL;
