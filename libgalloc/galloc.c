@@ -14,13 +14,9 @@ struct block *last_unused = NULL;
 struct block *get_unused(size_t size)
 {
     struct block *position;
-    for (
-        position = last_unused;
-        is_managed(position + size) &&
-        position != last_unused &&
-        position != NULL;
-        position = position->header.unused_block.pointers.next
-        );
+    for (position = last_unused;
+        get_size(position) < size || get_next(position) != last_unused;
+        position = get_next(position));
     return position;
 }
 
