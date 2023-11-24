@@ -77,11 +77,11 @@ int main(int argc, char **argv)
     printf("%s\n", (char*) funner_memory);
     
     // And unused the blocks at the end
-    burr((void*) 0);
-    burr(&argc);
-    burr(fun_memory);
-    burr(funnest_memory);
-    burr(funner_memory);
+    burr_stack((void*) 0);
+    burr_stack(&argc);
+    burr_stack(fun_memory);
+    burr_stack(funnest_memory);
+    burr_stack(funner_memory);
 
     return EXIT_SUCCESS;
 }

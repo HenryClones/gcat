@@ -5,23 +5,7 @@
 // Gcat's memory region
 void *gcat_mem = NULL;
 // The size of gcat's memory region
-size_t gcat_size = 0;
-
-#ifndef NO_UB
-/**
- * This can compare two pointers for being greater than or equal to each other.
- * This is undefined behavior, and only works for pointers within register size,
- * as well as only working on flat architectures.
- */
-#define UB_pointer_gte(ptr1, ptr2) (((uintptr_t) ptr1) >= ((uintptr_t) ptr2))
-
-/**
- * This can compare two pointers for being less than or equal to each other.
- * This is undefined behavior, and only works for pointers within register size,
- * as well as only working on flat architectures.
- */
-#define UB_pointer_lte(ptr1, ptr2) (((uintptr_t) ptr1) <= ((uintptr_t) ptr2))
-#endif // NO_UB
+void *gcat_mem_end = NULL;
 
 /**
  * Calculate the size to expand GCAT's memory to, in order to ensure capacity.
@@ -45,24 +29,23 @@ static size_t size_ceil(size_t size, size_t bound)
  */
 void *get_mem(void *addr)
 {
-    size_t newsize = size_ceil(addr - gcat_mem, Getpagesize());
+    size_t newsize = size_ceil(addr - gcat_mem_end, Getpagesize());
     if (gcat_mem == NULL)
     {
         gcat_mem = Mmap(NULL, Getpagesize());
+        gcat_mem_end = gcat_mem + Getpagesize();
     }
 
     if (addr == NULL)
     {
-        return gcat_mem;
+        addr = gcat_mem;
     }
 
-    if ((uintptr_t) addr >= (uintptr_t) gcat_mem + gcat_size)
+    if (addr >= gcat_mem_end && newsize > 0)
     {
-        if (newsize > gcat_size)
-        {
-            gcat_size = newsize;
-            gcat_mem = Mremap(gcat_mem, gcat_size, newsize);
-        }
+        size_t old_difference = gcat_mem_end - gcat_mem;
+        gcat_mem_end += newsize;
+        gcat_mem = Mremap(gcat_mem, old_difference, gcat_mem_end - gcat_mem);
     }
 
     return addr;
@@ -75,6 +58,5 @@ void *get_mem(void *addr)
  */
 int is_managed(void *addr)
 {
-    return UB_pointer_gte(addr, (void *) (gcat_mem)) &&
-        UB_pointer_lte(addr, (void *) (gcat_mem + gcat_size));
+    return addr >= gcat_mem && addr < gcat_mem_end;
 }

@@ -6,8 +6,6 @@ extern "C" {
 #define GCAT_TYPES_H
 #include <stddef.h>
 
-typedef void(* gcat_reaper)(void *);
-
 // Determine whether a block is unused or used
 typedef enum {unused, used} liberty;
 

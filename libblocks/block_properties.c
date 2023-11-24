@@ -172,9 +172,9 @@ void *get_payload(struct block *blk)
  * @pre blk is a valid block which is currently used
  * @param blk the pointer to the block in GCAT to add a reference to
  */
-void set_finalizer(struct block *blk, gcat_reaper destructor)
+void set_finalizer(struct block *blk, void(* finalizer)(void *))
 {
-    blk->header.used_block.finalizer = destructor;
+    blk->header.used_block.finalizer = finalizer;
 }
 
 /**
@@ -182,7 +182,7 @@ void set_finalizer(struct block *blk, gcat_reaper destructor)
  * @pre blk is a valid block which is currently used
  * @param blk the pointer to the block in GCAT to add a reference to
  */
-gcat_reaper get_finalizer(struct block *blk)
+void* get_finalizer(struct block *blk)
 {
     return blk->header.used_block.finalizer;
 }

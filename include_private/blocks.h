@@ -45,7 +45,7 @@ struct block
                 uint32_t strong_users;
             } users;
             // The finalizer, if defined
-            gcat_reaper finalizer;
+            void(* finalizer)(void *);
         } used_block;
     } header;
 
@@ -71,8 +71,8 @@ void update_ref_total(struct block *blk, int delta);
 int get_ref_strong(struct block *blk);
 void update_ref_strong(struct block *blk, int delta);
 void *get_payload(struct block *blk);
-void set_finalizer(struct block *blk, gcat_reaper destructor);
-gcat_reaper get_finalizer(struct block *blk);
+void set_finalizer(struct block *blk, void(* finalizer)(void *));
+void *get_finalizer(struct block *blk);
 
 // block_array.c
 

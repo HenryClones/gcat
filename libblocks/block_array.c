@@ -58,10 +58,11 @@ struct block *coalesce(struct block *min, struct block *max, struct block *blk, 
  */
 struct block *free_block(struct block *blk, struct block *next, int has_after)
 {
-    if (get_finalizer(blk) != NULL)
+    if (blk->header.used_block.finalizer != NULL)
     {
         // Execute finalizer over payload
-        get_finalizer(blk)(blk->payload);
+        typedef void(* finalizer)(void *);
+        ((finalizer) get_finalizer(blk))(blk->payload);
     }
     // The block is now unused
     set_prev(blk, get_prev(next));

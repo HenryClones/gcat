@@ -1,6 +1,6 @@
-#include "galloc.h"
+#include "blocks.h"
 #include "mem.h"
-#include "types.h"
+#include "galloc.h"
 
 // The last unused block by gcat
 struct block *last_unused = NULL;
@@ -9,9 +9,9 @@ struct block *last_unused = NULL;
  * Get the next unused block above a certain size.
  * @pre there is at least one unused block in gcat_mem
  * @param size the size of the block to get
- * @return a pointer to the next unused block.
+ * @return a position to the next unused block.
  */
-struct block *get_unused(size_t size)
+static void *get_unused(size_t size)
 {
     struct block *position;
     for (position = last_unused;
@@ -21,91 +21,114 @@ struct block *get_unused(size_t size)
 }
 
 /**
- * Get a block's header
+ * Get a block's header.
+ * @param position the position to the block
+ * @return the block's header position, or NULL if it is not in the right area
  */
-struct block *get_block_header(void *pointer)
+static struct block *get_block_header(void *position)
 {
-    // Check if the pointer even has a header
-    if (!is_managed(pointer))
-    {
-        return NULL;
-    }
+    // The payload position
+    uint8_t * payload = (uint8_t *) position;
 
-    // The payload pointer
-    size_t *payload = (size_t *) pointer;
-
-    // The block pointer
+    // The block position
     return (struct block *) (payload - offsetof(struct block, payload));
+} __attribute__ ((const))
+
+/**
+ * Use a block, splitting extra space off to the right.
+ * 
+ */
+void *use_block(void *block, size_t size)
+{
+    struct block *blk = get_block_header(block);
+    
 }
 
 /**
- * Initialize a struct block.
- * @pre there is not a block at position
- * @post there is now a block at position, with the used bits of prev/next modified
- * @param position the position of the new block
- * @param block_size the size of the new block
- * @param prev the previous block
- * @param next the next block
+ * Free a struct block if necessary by applying recursive cases.
+ * @param position the block at a position
  */
-void make_block(struct block *position, struct block *prev, struct block *next,
-    liberty is_unused, size_t block_size, gcat_reaper finalizer)
+void make_block_free(void *position)
 {
-    // Get the block from the pointer
-    struct block blk = *position;
-
-    if (prev == NULL)
+    // Check if the position even has a header
+    if (!is_managed(position))
     {
-        prev = position;
+        return;
     }
-
-    if (next == NULL)
-    {
-        next = position;
-    }
-
-    // Set the previous and next fields of this block to the correct values
-    if (is_unused == unused)
-    {
-        set_prev(position, prev);
-        set_next(position, next);
-        if (prev)
-        {
-            // Set up the previous block, as well as the prev_unused value of this one
-            struct block prev_block = *prev;
-            blk.flags.prev_unused = prev_block.flags.unused;
-            prev_block.header.unused_block.pointers.next = position;
-        }
-        else
-        {
-            // Set the previous block to be unused
-            blk.flags.prev_unused = used;
-        }
-
-        if (next)
-        {
-            // Set up the next block if it exists
-            struct block next_block = *next;
-            next_block.flags.prev_unused = unused;
-            next_block.header.unused_block.pointers.prev = position;
-        }
-    }
-    else
-    {
-        update_ref_strong(position, 1);
-    }
-
-    // Initialize size correctly
-    set_size(position, block_size);
-
-    // Set the destructor
-    blk.header.used_block.finalizer = finalizer;
+    struct block *blk = get_block_header(position);
+    free_block(blk, last_unused, is_managed(get_after(blk)));
 }
 
 /**
- * Initialize GCAT's allocator memory if it has not been initialized yet.
- * @post memory initialized
+ * Increase the strong users of a block.
+ * @param position the position of this block
  */
-void init_mem()
+void increase_strong_users(void *position)
 {
-    last_unused = get_mem(NULL);
+    // Check if the position even has a header
+    if (!is_managed(position))
+    {
+        return;
+    }
+    struct block *blk = get_block_header(position);
+    update_ref_strong(blk, 1);
+}
+
+/**
+ * Increase the total users of a block.
+ * @param position the position of this block
+ */
+void increase_total_users(void *position)
+{
+    // Check if the position even has a header
+    if (!is_managed(position))
+    {
+        return;
+    }
+    struct block *blk = get_block_header(position);
+    // Increase the block's total references.
+    update_ref_total(blk, 1);
+}
+
+/**
+ * Decrease the strong users of a block.
+ * @param position the position of this block
+ */
+void decrease_strong_users(void *position)
+{
+    // Check if the position even has a header
+    if (!is_managed(position))
+    {
+        return;
+    }
+    struct block *blk = get_block_header(position);
+    // Decrease the block's strong references.
+    update_ref_strong(blk, -1);
+}
+
+/**
+ * Decrease the total users of a block.
+ * @param position the position of this block
+ */
+void decrease_total_users(void *position)
+{
+    // Check if the position even has a header
+    if (!is_managed(position))
+    {
+        return;
+    }
+    struct block *blk = get_block_header(position);
+    // Decrease the block's total references.
+    update_ref_total(blk, -1);
+}
+
+/**
+ * Check if a position is inside of a given block.
+ */
+int in_block(void *block, void *position)
+{
+    // Check if the position even has a header
+    struct block *blk = get_block_header(block);
+    return is_managed(block) && is_managed(position) &&
+           position >= block && blk->size + block > position;
 }
