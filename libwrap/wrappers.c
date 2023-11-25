@@ -18,18 +18,12 @@
 #define MAP_ANONYMOUS 0
 #endif
 // Otherwise, fully mimic anonymous pages
-static int devzero_fd = -1;
+static int devzero_fd = 0;
 
-// disable these functions if they do not exist
-// they are just optional, performance enhancing ones
-// #ifndef MAP_HUGETLB
-// #define MAP_HUGETLB 0
-// #endif
-// #ifndef MAP_HUGE_2MB
-// #define MAP_HUGE_2MB 0
-// #endif
-// Add anonymous page and hugetlb functionality
 #define GCAT_MANAGED_PAGE_FLAGS (MAP_PRIVATE | /* MAP_HUGETLB | MAP_HUGE_2MB | */ MAP_ANONYMOUS)
+
+#define GCAT_GUARD_PAGE_PROT (PROT_NONE)
+#define GCAT_GUARD_PAGE_FLAGS (MAP_FIXED | MAP_PRIVATE)
 
 #ifndef MAP_FAILED
 #define MAP_FAILED ((void *) -1)
@@ -81,9 +75,6 @@ int Getpagesize()
     return getpagesize_cached;
 }
 
-#define GCAT_GUARD_PAGE_PROT (PROT_NONE)
-#define GCAT_GUARD_PAGE_FLAGS (MAP_FIXED | MAP_PRIVATE)
-
 /**
  * Get the position of the first guard page.
  */
@@ -97,8 +88,13 @@ static void *guard_page_before_position(void *base)
  */
 static void create_guard_page_before(void *addr)
 {
+    #ifdef MAP_ANONYMOUS
+    void *throwaway = mmap(guard_page_before_position(addr),
+        1, GCAT_GUARD_PAGE_PROT, GCAT_GUARD_PAGE_FLAGS | MAP_ANONYMOUS, -1, 0);
+    #else
     void *throwaway = mmap(guard_page_before_position(addr),
         1, GCAT_GUARD_PAGE_PROT, GCAT_GUARD_PAGE_FLAGS, devzero_fd, 0);
+    #endif // MAP_ANONYMOUS
     if (throwaway == MAP_FAILED)
     {
         unixerror_simple(errno, "initializing first guard page with mmap function");
@@ -120,8 +116,13 @@ static void *guard_page_after_position(void *base, size_t size)
  */
 static void create_guard_page_after(void *addr, size_t length)
 {
+    #ifdef MAP_ANONYMOUS
+    void *throwaway = mmap(guard_page_after_position(addr, length),
+        1, GCAT_GUARD_PAGE_PROT, GCAT_GUARD_PAGE_FLAGS | MAP_ANONYMOUS, -1, 0);
+    #else
     void *throwaway = mmap(guard_page_after_position(addr, length),
         1, GCAT_GUARD_PAGE_PROT, GCAT_GUARD_PAGE_FLAGS, devzero_fd, 0);
+    #endif // MAP_ANONYMOUS
     if (throwaway == MAP_FAILED)
     {
         unixerror_simple(errno, "initializing second guard page with mmap function");
@@ -138,9 +139,16 @@ static void move_guard_page_after(void *addr, size_t old_length, size_t new_leng
     // Move the guard pages
     void *throwaway = mremap(guard_page_after_position(addr, old_length), guard_page_before_position(addr, new_length));
     #else
+
+    #ifdef MAP_ANONYMOUS
+    void *throwaway = mmap(guard_page_after_position(addr, old_length),
+        1, GCAT_GUARD_PAGE_PROT, GCAT_GUARD_PAGE_FLAGS | MAP_ANONYMOUS, -1, 0);
+    #else
     void *throwaway = mmap(guard_page_after_position(addr, old_length),
         1, GCAT_GUARD_PAGE_PROT, GCAT_GUARD_PAGE_FLAGS, devzero_fd, 0);
-    #endif
+    #endif // MAP_ANONYMOUS
+    
+    #endif // mremap
 
     if (throwaway == MAP_FAILED || addr != throwaway)
     {
@@ -160,7 +168,7 @@ void *Mmap(void *addr, size_t length)
     if (!devzero_fd)
     {
         devzero_fd = open("/dev/zero", O_RDWR);
-        if (fd == -1)
+        if (!devzero_fd)
         {
             unixerror_simple(errno, "initializing page by opening file path /dev/zero");
         }
@@ -175,6 +183,8 @@ void *Mmap(void *addr, size_t length)
         unixerror_simple(errno, "initializing page with mmap function");
     }
     // Add the guard page creation
+    create_guard_page_before(addr);
+    create_guard_page_after(addr, length);
     return block;
 }
 
@@ -185,6 +195,9 @@ void *Mremap(void *addr, size_t old_length, size_t new_length)
     getrlimit(RLIMIT_AS, &limits);
     limits.rlim_max += new_length - old_length;
     setrlimit(RLIMIT_AS, &limits);
+    
+    // finish with guard pages
+    move_guard_page_after(addr, old_length, new_length);
 
     // before remapping the rest of the memory
     #ifdef mremap
@@ -193,9 +206,6 @@ void *Mremap(void *addr, size_t old_length, size_t new_length)
     void *block =  mmap(addr, new_length, GCAT_MANAGED_PAGE_PROT,
         GCAT_MANAGED_PAGE_FLAGS | MAP_FIXED, devzero_fd, 0);
     #endif
-    
-    // finish with guard pages
-    move_guard_page_after(addr, old_length, new_length);
 
     if (block == MAP_FAILED || addr != block)
     {
