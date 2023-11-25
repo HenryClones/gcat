@@ -41,6 +41,7 @@ int wrappers_test2()
     // Write to end of page
     pos = (uint64_t *)(mem + size - sizeof(uint64_t));
     *pos = 1;
+    munmap(mem, size);
     return 0;
 }
 
@@ -86,5 +87,6 @@ int wrappers_test3()
     // Write to end of page
     pos = (uint64_t *)(mem + size - sizeof(uint64_t));
     *pos = 1;
+    munmap(mem, size);
     return 0;
 }
