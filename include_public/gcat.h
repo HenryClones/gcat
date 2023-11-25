@@ -10,9 +10,9 @@ extern "C" {
 #endif // size_t
 
 void *bounds_checked_access(void *pointer, int base, int offset, int step);
+void *gall(size_t size, void(* finalizer)(void *));
 void *hew_stack(void *pointer);
 void *hew_heap(void *pointer);
-void *gall(size_t size, void(* finalizer)(void *));
 void burr_stack(void *pointer);
 void burr_heap(void *pointer);
 

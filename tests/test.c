@@ -16,18 +16,19 @@ static int select_test(char *test)
     int results = 0;
 
     results |= blocks_tests(test);
+    results |= gcat_tests(test);
     
-    if (!strcmp(test, "wrappers") && !strcmp(test, "wrappers1"))
+    if (!strcmp(test, "wrappers") || !strcmp(test, "wrappers1"))
     {
         results |= wrappers_test1();
     }
     
-    if (!strcmp(test, "wrappers") && !strcmp(test, "wrappers2"))
+    if (!strcmp(test, "wrappers") || !strcmp(test, "wrappers2"))
     {
         results |= wrappers_test2();
     }
     
-    if (!strcmp(test, "wrappers") && !strcmp(test, "wrappers3"))
+    if (!strcmp(test, "wrappers") || !strcmp(test, "wrappers3"))
     {
         results |= wrappers_test3();
     }
@@ -37,7 +38,7 @@ static int select_test(char *test)
         results |= mem_test1();
     }
     
-    if (!strcmp(test, "mem") && !strcmp(test, "mem2"))
+    if (!strcmp(test, "mem") || !strcmp(test, "mem2"))
     {
         results |= mem_test2();
     }
@@ -45,11 +46,6 @@ static int select_test(char *test)
     if (!strcmp(test, "galloc"))
     {
         results |= galloc_test1();
-    }
-
-    if (!strcmp(test, "gcat"))
-    {
-        results |= gcat_test1();
     }
     
     return results;

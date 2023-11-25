@@ -322,77 +322,77 @@ static int blocks_test14()
 }
 
 /**
- * Test blocks.h set_flag.
+ * Test blocks.h.
  */
 int blocks_tests(char *test)
 {
     int results = 0;
-    if (!strcmp(test, "blocks") && !strcmp(test, "blocks01"))
+    if (!strcmp(test, "blocks") || !strcmp(test, "blocks01"))
     {
         results |= blocks_test01();
     }
     
-    if (!strcmp(test, "blocks") && !strcmp(test, "blocks02"))
+    if (!strcmp(test, "blocks") || !strcmp(test, "blocks02"))
     {
         results |= blocks_test02();
     }
     
-    if (!strcmp(test, "blocks") && !strcmp(test, "blocks03"))
+    if (!strcmp(test, "blocks") || !strcmp(test, "blocks03"))
     {
         results |= blocks_test03();
     }
     
-    if (!strcmp(test, "blocks") && !strcmp(test, "blocks04"))
+    if (!strcmp(test, "blocks") || !strcmp(test, "blocks04"))
     {
         results |= blocks_test04();
     }
     
-    if (!strcmp(test, "blocks") && !strcmp(test, "blocks05"))
+    if (!strcmp(test, "blocks") || !strcmp(test, "blocks05"))
     {
         results |= blocks_test05();
     }
     
-    if (!strcmp(test, "blocks") && !strcmp(test, "blocks06"))
+    if (!strcmp(test, "blocks") || !strcmp(test, "blocks06"))
     {
         results |= blocks_test06();
     }
     
-    if (!strcmp(test, "blocks") && !strcmp(test, "blocks07"))
+    if (!strcmp(test, "blocks") || !strcmp(test, "blocks07"))
     {
         results |= blocks_test07();
     }
     
-    if (!strcmp(test, "blocks") && !strcmp(test, "blocks08"))
+    if (!strcmp(test, "blocks") || !strcmp(test, "blocks08"))
     {
         results |= blocks_test08();
     }
     
-    if (!strcmp(test, "blocks") && !strcmp(test, "blocks09"))
+    if (!strcmp(test, "blocks") || !strcmp(test, "blocks09"))
     {
         results |= blocks_test09();
     }
     
-    if (!strcmp(test, "blocks") && !strcmp(test, "blocks10"))
+    if (!strcmp(test, "blocks") || !strcmp(test, "blocks10"))
     {
         results |= blocks_test10();
     }
     
-    if (!strcmp(test, "blocks") && !strcmp(test, "blocks11"))
+    if (!strcmp(test, "blocks") || !strcmp(test, "blocks11"))
     {
         results |= blocks_test11();
     }
     
-    if (!strcmp(test, "blocks") && !strcmp(test, "blocks12"))
+    if (!strcmp(test, "blocks") || !strcmp(test, "blocks12"))
     {
         results |= blocks_test12();
     }
     
-    if (!strcmp(test, "blocks") && !strcmp(test, "blocks13"))
+    if (!strcmp(test, "blocks") || !strcmp(test, "blocks13"))
     {
         results |= blocks_test13();
     }
     
-    if (!strcmp(test, "blocks") && !strcmp(test, "blocks14"))
+    if (!strcmp(test, "blocks") || !strcmp(test, "blocks14"))
     {
         results |= blocks_test14();
     }
