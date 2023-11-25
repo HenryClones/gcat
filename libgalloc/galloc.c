@@ -14,7 +14,7 @@ struct block *last_unused = NULL;
 void *get_unused(size_t size)
 {
     struct block *position;
-    for (position = last_unused;
+    for (position = get_mem(last_unused);
         get_size(position) < size || get_next(position) != last_unused;
         position = get_next(position));
     return position->payload;

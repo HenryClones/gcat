@@ -133,13 +133,13 @@ static void move_guard_page_after(void *addr, size_t old_length, size_t new_leng
     #ifdef mremap
     // Move the guard pages
     void *throwaway = mremap(guard_page_after_position(addr, old_length), old_length, new_length,
-        guard_page_before_position(addr, new_length), GCAT_GUARD_PAGE_FLAGS);
+        MREMAP_MAYMOVE, guard_page_after_position(addr, new_length));
     #else
     void *throwaway = mmap(guard_page_after_position(addr, old_length),
         1, GCAT_GUARD_PAGE_PROT, GCAT_GUARD_PAGE_FLAGS, devzero_fd, 0);
     #endif // mremap
 
-    if (throwaway == MAP_FAILED || addr != throwaway)
+    if (throwaway == MAP_FAILED || addr == throwaway)
     {
         unixerror_simple(errno, "moving second guard page with mremap function");
     }
