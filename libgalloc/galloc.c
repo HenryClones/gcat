@@ -11,13 +11,13 @@ struct block *last_unused = NULL;
  * @param size the size of the block to get
  * @return a position to the next unused block.
  */
-static void *get_unused(size_t size)
+void *get_unused(size_t size)
 {
     struct block *position;
     for (position = last_unused;
         get_size(position) < size || get_next(position) != last_unused;
         position = get_next(position));
-    return position;
+    return position->payload;
 }
 
 /**
@@ -25,23 +25,24 @@ static void *get_unused(size_t size)
  * @param position the position to the block
  * @return the block's header position, or NULL if it is not in the right area
  */
-static struct block *get_block_header(void *position)
+static struct block * __attribute__ ((const)) get_block_header(void *position)
 {
     // The payload position
     uint8_t * payload = (uint8_t *) position;
 
     // The block position
     return (struct block *) (payload - offsetof(struct block, payload));
-} __attribute__ ((const))
+}
 
 /**
  * Use a block, splitting extra space off to the right.
  * 
  */
-void *use_block(void *block, size_t size)
+void *use_block(void *block, void (*finalizer)(void *), size_t size)
 {
     struct block *blk = get_block_header(block);
-    
+    set_flag(blk, used, is_managed(get_after(blk)));
+    return blk->payload;
 }
 
 /**

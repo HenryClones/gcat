@@ -56,7 +56,7 @@ void *get_mem(void *addr)
  * @param addr the pointer to check
  * @return 1 if it is in GCAT's spaced, 0 otherwise
  */
-int is_managed(void *addr)
+int __attribute__((pure)) is_managed(void *addr)
 {
     return addr >= gcat_mem && addr < gcat_mem_end;
 }

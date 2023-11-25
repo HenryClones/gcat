@@ -73,11 +73,11 @@ void burr_heap(void *block)
 }
 
 /**
- * GCAT's customized garbage-collected memory allocator.
+ * GCAT's customized managed memory allocator.
  * @post there is a used block with one user which was returned.
  * @return The memory which was allocated, or NULL if it failed.
  */
 void *gall(size_t size, void(* finalizer)(void *))
 {
-    return NULL;
+    return use_block(get_unused(size), finalizer, size);
 }
