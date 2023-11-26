@@ -2,8 +2,26 @@
 #include "mem.h"
 #include "galloc.h"
 
+#define INITIAL_SIZE 1000
+
 // The last unused block by gcat
 struct block *last_unused = NULL;
+
+/**
+ * 
+ */
+static struct block *find_mem(struct block *ptr)
+{
+    // Initialize first block
+    if (ptr == NULL)
+    {
+        ptr = get_mem(ptr);
+        set_flag(ptr, used, 0);
+        set_size(ptr, INITIAL_SIZE);
+        free_block(ptr, ptr, 0);
+    }
+    return ptr;
+}
 
 /**
  * Get the next unused block above a certain size.
@@ -14,7 +32,7 @@ struct block *last_unused = NULL;
 void *get_unused(size_t size)
 {
     struct block *position;
-    for (position = get_mem(last_unused);
+    for (position = last_unused = get_mem(find_mem(last_unused));
         get_size(position) < size || get_next(position) != last_unused;
         position = get_next(position));
     return position->payload;

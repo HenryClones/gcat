@@ -31,7 +31,7 @@ int wrappers_test2()
         return EXIT_FAILURE;
     }
     // Test if it's aligned to pages
-    if ((long long int)(mem) % getpagesize() != 0)
+    if ((uintptr_t)(mem) % getpagesize() != 0)
     {
         return EXIT_FAILURE;
     }

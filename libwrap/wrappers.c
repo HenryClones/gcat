@@ -154,7 +154,7 @@ void *Mmap(void *addr, size_t length)
     setrlimit(RLIMIT_AS, &limits);
     #ifndef MAP_ANONYMOUS
     // Create the /dev/zero file descriptor
-    if (!devzero_fd)
+    if (devzero_fd == -1)
     {
         devzero_fd = open("/dev/zero", O_RDWR);
         if (!devzero_fd)

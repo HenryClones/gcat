@@ -55,6 +55,7 @@ static int blocks_test03()
 {
     struct block x;
     size_t y = 100;
+    set_flag(&x, used, 0);
     set_size(&x, y);
     if (get_size(&x) < y)
     {
@@ -216,18 +217,18 @@ static int blocks_test09()
  */
 static int blocks_test10()
 {
-    struct block x;
-    struct block y;
-    set_finalizer(&x, finalizer);
-    struct block z = *(free_block(&x, &x, 0));
+    struct block x[2];
+    struct block *y = &(x[1]);
+    set_finalizer(x, finalizer);
+    struct block *z = free_block(x, x, 1);
     if (!finalizer_ran)
     {
         return 1;
     }
     finalizer_ran = !finalizer_ran;
-    set_flag(&y, unused, 0);
-    z = *(free_block(&y, &x, 1));
-    if (!finalizer_ran || get_prevflag(&y) != unused || &z != &x)
+    set_flag(y, unused, 0);
+    z = free_block(y, x, 0);
+    if (!finalizer_ran || get_prevflag(y) != unused || z != x)
     {
         return 1;
     }
@@ -240,10 +241,9 @@ static int blocks_test10()
 static int blocks_test11()
 {
     // 1. Minimum size
-    struct block x;
-    struct block y;
-    struct block *px = &x;
-    struct block *py = &y;
+    struct block x[2];
+    struct block *px = &(x[0]);
+    struct block *py = &(x[1]);
     set_size(px, 1);
     set_size(py, 1);
     if (get_after(px) != py)
