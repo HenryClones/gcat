@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <gcat.h>
+#include "gcat.h"
 #include "blocks_tests.h"
 #include "mem_tests.h"
 #include "wrappers_tests.h"

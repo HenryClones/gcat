@@ -132,10 +132,17 @@ static void move_guard_page_after(void *addr, size_t old_length, size_t new_leng
     // mremap is not a guaranteed posix feature!
     #ifdef mremap
     // Move the guard pages
-    void *throwaway = mremap(guard_page_after_position(addr, old_length), old_length, new_length,
+    void *throwaway = mremap(guard_page_after_position(addr, old_length), 1, 1,
         MREMAP_MAYMOVE, guard_page_after_position(addr, new_length));
     #else
-    void *throwaway = mmap(guard_page_after_position(addr, old_length),
+    // Without mremap
+    int answer = munmap(guard_page_after_position(addr, old_length), old_length);
+    if (!answer)
+    {
+        unixerror_simple(errno, "moving second guard page with munmap function");
+    }
+
+    void *throwaway = mmap(guard_page_after_position(addr, new_length),
         1, GCAT_GUARD_PAGE_PROT, GCAT_GUARD_PAGE_FLAGS, devzero_fd, 0);
     #endif // mremap
 
@@ -147,11 +154,6 @@ static void move_guard_page_after(void *addr, size_t old_length, size_t new_leng
 
 void *Mmap(void *addr, size_t length)
 {
-    // Set the soft memory limit
-    struct rlimit limits;
-    getrlimit(RLIMIT_AS, &limits);
-    limits.rlim_max += length;
-    setrlimit(RLIMIT_AS, &limits);
     #ifndef MAP_ANONYMOUS
     // Create the /dev/zero file descriptor
     if (devzero_fd == -1)
@@ -161,7 +163,6 @@ void *Mmap(void *addr, size_t length)
         {
             unixerror_simple(errno, "initializing page by opening file path /dev/zero");
         }
-        fd = devzero_fd;
     }
     #endif
 
@@ -179,12 +180,6 @@ void *Mmap(void *addr, size_t length)
 
 void *Mremap(void *addr, size_t old_length, size_t new_length)
 {
-    // Set the soft memory limit
-    struct rlimit limits;
-    getrlimit(RLIMIT_AS, &limits);
-    limits.rlim_max += new_length - old_length;
-    setrlimit(RLIMIT_AS, &limits);
-    
     // finish with guard pages
     move_guard_page_after(addr, old_length, new_length);
 

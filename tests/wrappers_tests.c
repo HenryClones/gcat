@@ -10,7 +10,11 @@
  */
 int wrappers_test1()
 {
+    #ifdef getpagesize
     return Getpagesize() != getpagesize();
+    #else
+    return Getpagesize() != sysconf(_SC_PAGESIZE);
+    #endif
 }
 
 /**
@@ -31,17 +35,22 @@ int wrappers_test2()
         return EXIT_FAILURE;
     }
     // Test if it's aligned to pages
-    if ((uintptr_t)(mem) % getpagesize() != 0)
+    uintptr_t mem_n = (uintptr_t) mem;
+    // getpagesize returns sigsegv?!
+    int size = sysconf(_SC_PAGESIZE);
+    if (mem_n % size != 0)
     {
         return EXIT_FAILURE;
     }
     // Write to page
-    uint64_t *pos = ((uint64_t *)mem);
+    uint64_t *pos = (uint64_t *) mem;
     *pos = 1;
     // Write to end of page
-    pos = (uint64_t *)(mem + size - sizeof(uint64_t));
-    *pos = 1;
-    munmap(mem, size);
+    pos[size / sizeof(uint64_t) - 1] = 1;
+    if (pos[size / sizeof(uint64_t) - 1] != pos[0])
+    {
+        return 1;
+    }
     return 0;
 }
 
