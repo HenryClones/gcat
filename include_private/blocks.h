@@ -81,6 +81,7 @@ size_t *get_block_boundary(struct block *blk);
 struct block *get_after(struct block *blk);
 struct block *get_before(struct block *blk);
 struct block *coalesce(struct block *min, struct block *max, struct block *blk, size_t desired_size);
+size_t true_size(struct block *blk);
 struct block *free_block(struct block *blk, struct block *next, int has_after);
 
 #endif // GCAT_BLOCKS_H

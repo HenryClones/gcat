@@ -51,6 +51,19 @@ struct block *coalesce(struct block *min, struct block *max, struct block *blk, 
 }
 
 /**
+ * Get the true size of this block after coalescence.
+ */
+size_t true_size(struct block *blk)
+{
+    size_t size = get_size(blk);
+    if (size >= sizeof(size_t) * 2)
+    {
+        size += *((size_t *) get_payload(blk));
+    }
+    return size;
+}
+
+/**
  * Free a block. next != NULL
  * @pre block is used and has no users and last_unused != NULL
  * @post block will be freed up and coalesced
@@ -62,7 +75,7 @@ struct block *free_block(struct block *blk, struct block *next, int has_after)
     {
         // Execute finalizer over payload
         typedef void(* finalizer)(void *);
-        ((finalizer) get_finalizer(blk))(blk->payload);
+        ((finalizer) get_finalizer(blk))(get_payload(blk));
     }
     // The block is now unused
     set_next(blk, next);
@@ -71,6 +84,36 @@ struct block *free_block(struct block *blk, struct block *next, int has_after)
     set_flag(blk, unused, has_after);
     set_size(blk, get_size(blk));
     // And reassign the correct one
+    struct block *before = get_before(blk);
+    // Size parameter to find blocks in constant time
+    if (has_after || get_size(blk) > sizeof(size_t) * 2)
+    {
+        // Add in true size
+        size_t *pl = get_payload(blk);
+        struct block *after = get_after(blk);
+        *pl = get_size(blk);
+        if (has_after && get_flag(after) == unused)
+        {
+            *pl += block_full_size(after);
+            set_prev(after, blk);
+        }
+        if (before)
+        {
+            struct block *before_end = get_before(before);
+            struct block *end;
+            if (before_end)
+            {
+                end = get_prev(before_end);
+                set_prev(blk, end);
+            }
+            else
+            {
+                end = get_prev(before);
+                set_prev(blk, end);
+            }
+            blk = before;
+        }
+    }
     return blk;
 }
 
@@ -85,7 +128,7 @@ struct block *get_after(struct block *blk)
     // Make sure to remember struct block pointers are not byte sized.
     // Size should be a multiple of max_align
     // size_t will fit at end of size
-    return (struct block *)((uint8_t *) blk + block_full_size(blk));
+    return (struct block *)((uint8_t *) blk + get_size(blk));
 }
 
 /**

@@ -7,7 +7,7 @@ extern "C" {
 #include <stddef.h>
 
 // Determine whether a block is unused or used
-typedef enum {unused, used} liberty;
+typedef enum {unused = 0, used = 1} liberty;
 
 #endif // GCAT_TYPES_H
 

@@ -35,6 +35,7 @@ add_test(NAME TestBlocks11 COMMAND ./${PROJECT_NAME} blocks11)
 add_test(NAME TestBlocks12 COMMAND ./${PROJECT_NAME} blocks12)
 add_test(NAME TestBlocks13 COMMAND ./${PROJECT_NAME} blocks13)
 add_test(NAME TestBlocks14 COMMAND ./${PROJECT_NAME} blocks14)
+add_test(NAME TestBlocks15 COMMAND ./${PROJECT_NAME} blocks15)
 
 # Galloc test
 add_test(NAME TestGalloc COMMAND ./${PROJECT_NAME} galloc)

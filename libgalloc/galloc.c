@@ -39,7 +39,7 @@ void *get_unused(size_t size)
         get_size(position) < size && get_next(position) != last_unused;
         position = get_mem(get_next(position)));
     get_mem(position + size);
-    return position->payload;
+    return get_payload(position);
 }
 
 /**
@@ -65,7 +65,7 @@ void *use_block(void *block, void (*finalizer)(void *), size_t size)
 
     set_size(blk, size);
     size_t next_size = block_full_size(blk);
-    int has_after = is_managed(blk->payload + next_size);
+    int has_after = is_managed(get_payload(blk) + next_size);
     set_flag(blk, used, has_after);
     set_finalizer(blk, finalizer);
 
@@ -88,7 +88,7 @@ void *use_block(void *block, void (*finalizer)(void *), size_t size)
         last_unused = after;
     }
 
-    return blk->payload;
+    return get_payload(blk);
 }
 
 /**

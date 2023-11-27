@@ -30,17 +30,18 @@ static int blocks_test01()
 static int blocks_test02()
 {
     // 2a: next=true
-    struct block x;
-    struct block y;
-    set_next(&x, &y);
-    set_flag(&x, unused, 1);
-    if (get_flag(&x) != unused)
+    struct block x[2];
+    set_flag(x, unused, 0);
+    set_size(x, 1);
+    set_next(x, &(x[1]));
+    set_flag(x, unused, 1);
+    if (get_flag(x) != unused)
     {
         return 1;
     }
     // 2b: go back
-    set_flag(&x, used, 1);
-    if (get_flag(&x) != used)
+    set_flag(x, used, 1);
+    if (get_flag(x) != used)
     {
         return 1;
     }
@@ -219,7 +220,9 @@ static int blocks_test10()
 {
     struct block x[2];
     struct block *y = &(x[1]);
+    set_flag(x, used, 0);
     set_finalizer(x, finalizer);
+    set_size(x, 1);
     struct block *z = free_block(x, x, 1);
     if (!finalizer_ran)
     {
@@ -318,7 +321,25 @@ static int blocks_test14()
     struct block *px;
     px = (struct block *) buf;
     set_size(px, sizeof(size_t));
-    return get_block_boundary(px) != (size_t *) px->payload;
+    return get_block_boundary(px) != (size_t *) get_payload(px);
+}
+
+/**
+ * Test blocks.h true_size.
+ */
+static int blocks_test15()
+{
+    uint8_t buf[256];
+    struct block *x = (struct block*) buf;
+    set_size(x, 40);
+    set_flag(x, used, 1);
+    struct block *y = get_after(x);
+    set_size(y, 60);
+    if (true_size(x) <= get_size(x) || true_size(x) <= get_size(x + block_full_size(y)))
+    {
+        return 0;
+    }
+    return 0;
 }
 
 /**
@@ -395,6 +416,11 @@ int blocks_tests(char *test)
     if (!strcmp(test, "blocks") || !strcmp(test, "blocks14"))
     {
         results |= blocks_test14();
+    }
+    
+    if (!strcmp(test, "blocks") || !strcmp(test, "blocks15"))
+    {
+        results |= blocks_test15();
     }
     
     return results;
