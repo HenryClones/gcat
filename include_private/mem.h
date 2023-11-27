@@ -10,7 +10,7 @@ extern "C" {
 #endif
 
 void *get_mem(void *addr);
-int __attribute__ ((pure)) is_managed(void *block);
+int __attribute__ ((const)) is_managed(void *block);
 
 #endif // GCAT_MEM_H
 

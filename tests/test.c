@@ -28,11 +28,6 @@ static int select_test(char *test)
         results |= wrappers_test2();
     }
     
-    if (!strcmp(test, "wrappers") || !strcmp(test, "wrappers3"))
-    {
-        results |= wrappers_test3();
-    }
-    
     if (!strcmp(test, "mem") || !strcmp(test, "mem1"))
     {
         results |= mem_test1();

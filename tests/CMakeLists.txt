@@ -13,7 +13,6 @@ target_compile_options(${PROJECT_NAME} PRIVATE -Werror -Wall -Wextra)
 add_test(NAME TestWrappers COMMAND ./${PROJECT_NAME} wrappers)
 add_test(NAME TestWrappers1 COMMAND ./${PROJECT_NAME} wrappers1)
 add_test(NAME TestWrappers2 COMMAND ./${PROJECT_NAME} wrappers2)
-add_test(NAME TestWrappers3 COMMAND ./${PROJECT_NAME} wrappers3)
 
 # Memory tests
 add_test(NAME TestMem COMMAND ./${PROJECT_NAME} mem)

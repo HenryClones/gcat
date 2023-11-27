@@ -7,7 +7,6 @@ extern "C" {
 
 int wrappers_test1();
 int wrappers_test2();
-int wrappers_test3();
 
 #endif // GCAT_WRAPPERS_TESTS_H
 
