@@ -37,8 +37,7 @@ int wrappers_test2()
     // Test if it's aligned to pages
     uintptr_t mem_n = (uintptr_t) mem;
     // getpagesize returns sigsegv?!
-    int size = sysconf(_SC_PAGESIZE);
-    if (mem_n % size != 0)
+    if (mem_n % 4096 != 0)
     {
         return EXIT_FAILURE;
     }

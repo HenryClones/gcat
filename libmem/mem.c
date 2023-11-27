@@ -18,7 +18,7 @@ static size_t size_ceil(size_t size, size_t bound)
     {
         return (size / bound) * bound + bound;
     }
-    return size;
+    return size + bound;
 }
 
 /**
@@ -32,8 +32,11 @@ void *get_mem(void *addr)
     size_t newsize = size_ceil(addr - gcat_mem_end, Getpagesize());
     if (gcat_mem == NULL)
     {
-        gcat_mem = Mmap(NULL, Getpagesize());
-        gcat_mem_end = gcat_mem + Getpagesize();
+        // I will use 0x6CA700000000 as the base address for now
+        // This splits it near-infinitely far from the stack and program memory
+        #define SYSTEM_DEPENDENT_MMAP_BASE_ADDR ((void *) 0x6CA700000000)
+        gcat_mem = Mmap(SYSTEM_DEPENDENT_MMAP_BASE_ADDR, newsize);
+        gcat_mem_end = gcat_mem + newsize;
     }
 
     if (addr == NULL)
@@ -44,8 +47,8 @@ void *get_mem(void *addr)
     if (addr >= gcat_mem_end && newsize > 0)
     {
         size_t old_difference = gcat_mem_end - gcat_mem;
-        gcat_mem_end += newsize;
         gcat_mem = Mremap(gcat_mem, old_difference, gcat_mem_end - gcat_mem);
+        gcat_mem_end = gcat_mem_end + newsize;
     }
 
     return addr;

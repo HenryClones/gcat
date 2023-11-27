@@ -119,7 +119,6 @@ static int blocks_test05()
 static int blocks_test06()
 {
     struct block x;
-    struct block y;
 
     int refs = 0;
 
@@ -143,7 +142,6 @@ static int blocks_test06()
 static int blocks_test07()
 {
     struct block x;
-    struct block y;
 
     int refs = 0;
 
@@ -190,6 +188,8 @@ static int finalizer_ran = 0;
 
 static void finalizer(void *payload)
 {
+    uint8_t *buf = payload;
+    buf[0] = 0;
     finalizer_ran = !finalizer_ran;
 }
 

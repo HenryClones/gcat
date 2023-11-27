@@ -12,7 +12,7 @@
  * The memory segment can be read and written to, but not executed.
  * It should be protected as it grows upward in the memory when needed.
  */
-#define GCAT_MANAGED_PAGE_PROT (PROT_READ | PROT_WRITE | PROT_GROWSUP)
+#define GCAT_MANAGED_PAGE_PROT (PROT_READ | PROT_WRITE)
 #define GCAT_GUARD_PAGE_PROT (PROT_NONE)
 
 #ifdef MAP_ANONYMOUS
@@ -35,27 +35,6 @@ static void unixerror_simple(int n, char *cause)
 {
     fprintf(stderr,
         "GCAT error: Unix error %d during %s.\n", n, cause);
-}
-
-// Two strings, the stage/function and the resource.
-static void unixerror_citereason(int n, char *stage, char *resource)
-{
-    fprintf(stderr,
-        "GCAT error: Unix error %d during %s %s.\n", n, stage, resource);
-}
-
-// Two strings and a pointer, the causing function, the resource, and the offending pointer.
-static void unixerror_citeobject(int n, char *stage, char *resource, void *blame)
-{
-    fprintf(stderr,
-        "GCAT error: Unix error %d during %s %s with %p.\n", n, stage, resource, blame);
-}
-
-// Two strings and a pointer, the causing function, the resource, and the offending pointer.
-static void unixerror_citeoffset(int n, char *stage, char *resource, void *blame, int offset)
-{
-    fprintf(stderr,
-        "GCAT error: Unix error %d during %s %s at %p:%d.\n", n, stage, resource, blame, offset);
 }
 
 // Cache the results of the below function
@@ -164,7 +143,7 @@ void *Mmap(void *addr, size_t length)
             unixerror_simple(errno, "initializing page by opening file path /dev/zero");
         }
     }
-    #endif
+    #endif // MAP_ANONYMOUS
 
     void *block = mmap(addr, length, GCAT_MANAGED_PAGE_PROT,
         GCAT_MANAGED_PAGE_FLAGS, devzero_fd, 0);

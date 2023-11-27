@@ -65,8 +65,8 @@ struct block *free_block(struct block *blk, struct block *next, int has_after)
         ((finalizer) get_finalizer(blk))(blk->payload);
     }
     // The block is now unused
-    set_prev(blk, get_prev(next));
     set_next(blk, next);
+    set_prev(blk, get_prev(next));
     // Be unused
     set_flag(blk, unused, has_after);
     set_size(blk, get_size(blk));
@@ -81,10 +81,11 @@ struct block *free_block(struct block *blk, struct block *next, int has_after)
  */
 struct block *get_after(struct block *blk)
 {
-    int size = get_size(blk);
+    // Note to self: Please, in the name of every last good in each future...
+    // Make sure to remember struct block pointers are not byte sized.
     // Size should be a multiple of max_align
     // size_t will fit at end of size
-    return blk + block_full_size(blk);
+    return (struct block *)((uint8_t *) blk + block_full_size(blk));
 }
 
 /**

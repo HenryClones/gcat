@@ -10,3 +10,4 @@ target_include_directories(${PROJECT_NAME} PRIVATE "${CMAKE_SOURCE_DIR}/include_
 set_property(TARGET ${PROJECT_NAME} PROPERTY POSITION_INDEPENDENT_CODE ON)
 target_link_libraries(${PROJECT_NAME} PRIVATE mem)
 target_link_libraries(${PROJECT_NAME} PRIVATE blocks)
+target_compile_options(${PROJECT_NAME} PRIVATE -Werror -Wall -Wextra)

@@ -12,7 +12,7 @@
  */
 void *bounds_checked_access(void *pointer, int base, int offset, int step)
 {
-    void *desired_position = pointer + base + offset * step;
+    void *desired_position = (uint8_t *) pointer + base + offset * step;
     if (in_block(pointer, desired_position))
     {
         return desired_position;

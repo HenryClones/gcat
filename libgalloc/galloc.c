@@ -8,7 +8,7 @@
 struct block *last_unused = NULL;
 
 /**
- * 
+ * Initialize the first area in memory if ptr == null, otherwise fallthrough
  */
 static struct block *find_mem(struct block *ptr)
 {
@@ -31,10 +31,14 @@ static struct block *find_mem(struct block *ptr)
  */
 void *get_unused(size_t size)
 {
+    // initialize last_unused
+    last_unused = find_mem(last_unused);
+    // walk down the chain and grab the first free block's payload
     struct block *position;
-    for (position = last_unused = get_mem(find_mem(last_unused));
-        get_size(position) < size || get_next(position) != last_unused;
-        position = get_next(position));
+    for (position = get_mem(last_unused);
+        get_size(position) < size && get_next(position) != last_unused;
+        position = get_mem(get_next(position)));
+    get_mem(position + size);
     return position->payload;
 }
 
@@ -45,11 +49,8 @@ void *get_unused(size_t size)
  */
 static struct block * __attribute__ ((const)) get_block_header(void *position)
 {
-    // The payload position
-    uint8_t * payload = (uint8_t *) position;
-
     // The block position
-    return (struct block *) (payload - offsetof(struct block, payload));
+    return (struct block *) ((uint8_t *) position - offsetof(struct block, payload));
 }
 
 /**
@@ -59,7 +60,34 @@ static struct block * __attribute__ ((const)) get_block_header(void *position)
 void *use_block(void *block, void (*finalizer)(void *), size_t size)
 {
     struct block *blk = get_block_header(block);
-    set_flag(blk, used, is_managed(get_after(blk)));
+    struct block *next = get_next(blk);
+    struct block *prev = get_prev(blk);
+
+    set_size(blk, size);
+    size_t next_size = block_full_size(blk);
+    int has_after = is_managed(blk->payload + next_size);
+    set_flag(blk, used, has_after);
+    set_finalizer(blk, finalizer);
+
+    if (next_size >= sizeof(struct block) + sizeof(size_t) * 2)
+    {
+        struct block *after = get_after(blk);
+        if (next == blk)
+        {
+            next = after;
+        }
+        if (prev == blk)
+        {
+            prev = after;
+        }
+
+        set_size(after, next_size);
+        set_flag(after, unused, is_managed(get_after(blk)));
+        set_next(after, next);
+        set_next(after, prev);
+        last_unused = after;
+    }
+
     return blk->payload;
 }
 
