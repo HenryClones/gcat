@@ -108,7 +108,7 @@ void increase_strong_users(void *position)
         return;
     }
     struct block *blk = get_block_header(position);
-    update_ref_strong(blk, 1);
+    set_ref_strong(blk, get_ref_strong(blk) + 1);
 }
 
 /**
@@ -124,7 +124,7 @@ void increase_total_users(void *position)
     }
     struct block *blk = get_block_header(position);
     // Increase the block's total references.
-    update_ref_total(blk, 1);
+    set_ref_total(blk, get_ref_total(blk) + 1);
 }
 
 /**
@@ -140,7 +140,7 @@ void decrease_strong_users(void *position)
     }
     struct block *blk = get_block_header(position);
     // Decrease the block's strong references.
-    update_ref_strong(blk, -1);
+    set_ref_strong(blk, get_ref_strong(blk) - 1);
 }
 
 /**
@@ -156,7 +156,7 @@ void decrease_total_users(void *position)
     }
     struct block *blk = get_block_header(position);
     // Decrease the block's total references.
-    update_ref_total(blk, -1);
+    set_ref_total(blk, get_ref_total(blk) - 1);
 }
 
 /**
@@ -167,5 +167,6 @@ int in_block(void *block, void *position)
     // Check if the position even has a header
     struct block *blk = get_block_header(block);
     return is_managed(block) && is_managed(position) &&
-           position >= block && blk->size + block > position;
+           (uint8_t *) position >= (uint8_t *) block &&
+           get_size(blk) + (uint8_t *) blk >= (uint8_t *) position;
 }

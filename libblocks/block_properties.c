@@ -138,10 +138,10 @@ int get_ref_strong(struct block *blk)
  * @post block has one more strong reference
  * @param blk the pointer to the block in GCAT to add a reference to
  */
-void update_ref_strong(struct block *blk, int delta)
+void set_ref_strong(struct block *blk, int x)
 {
-    blk->header.used_block.users.strong_users += delta;
-    update_ref_total(blk, delta);
+    blk->header.used_block.users.strong_users = x;
+    set_ref_total(blk, x);
 }
 
 /**
@@ -161,9 +161,9 @@ int get_ref_total(struct block *blk)
  * @post blk has one more weak reference
  * @param blk the pointer to the block in GCAT to add a reference to
  */
-void update_ref_total(struct block *blk, int delta)
+void set_ref_total(struct block *blk, int x)
 {
-    blk->header.used_block.users.total_users += delta;
+    blk->header.used_block.users.total_users = x;
 }
 
 /**

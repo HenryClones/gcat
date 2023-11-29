@@ -9,7 +9,7 @@ extern "C" {
 #include <stddef.h>
 #endif // size_t
 
-void *bounds_checked_access(void *pointer, int base, int offset, int step);
+void *bounds_checked_access(void *pointer, size_t base, size_t offset, size_t step);
 void *gall(size_t size, void(* finalizer)(void *));
 void *hew_stack(void *pointer);
 void *hew_heap(void *pointer);

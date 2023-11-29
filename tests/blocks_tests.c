@@ -122,14 +122,14 @@ static int blocks_test06()
     struct block x;
 
     int refs = 0;
-
-    update_ref_strong(&x, -get_ref_strong(&x) + refs);
+    
+    set_ref_strong(&x, refs);
     if (get_ref_strong(&x) != refs)
     {
         return 1;
     }
     refs = 10;
-    update_ref_strong(&x, refs);
+    set_ref_strong(&x, refs);
     if (get_ref_strong(&x) != refs)
     {
         return 1;
@@ -146,13 +146,13 @@ static int blocks_test07()
 
     int refs = 0;
 
-    update_ref_total(&x, -get_ref_total(&x) + refs);
+    set_ref_total(&x, refs);
     if (get_ref_total(&x) != refs)
     {
         return 1;
     }
     refs = 10;
-    update_ref_total(&x, refs);
+    set_ref_total(&x, refs);
     if (get_ref_total(&x) != refs)
     {
         return 1;
@@ -165,11 +165,12 @@ static int blocks_test07()
  */
 static int blocks_test08()
 {
-    struct block *xp;
     uint8_t buf[128]__attribute__((aligned));
+    struct block *xp;
+    xp = (struct block *) buf;
     int len = 80;
     uint8_t y = 40;
-    xp = (struct block *) buf;
+    set_flag(xp, used, 0);
     set_size(xp, len);
     uint8_t *payload = (uint8_t *) get_payload(xp);
     payload[0] = y;
@@ -231,7 +232,7 @@ static int blocks_test10()
     set_size(y, 1);
     set_finalizer(y, finalizer);
     struct block *z = free_block(x, x, 1);
-    if (!finalizer_ran)
+    if (!finalizer_ran || z != x)
     {
         return 1;
     }
@@ -299,6 +300,11 @@ static int blocks_test12()
         return 1;
     }
     set_prevflag(py, used);
+    if (get_before(py) != NULL)
+    {
+        return 1;
+    }
+    set_prevflag(py, unused);
     pz = free_block(py, px, 0);
     if (pz != px && get_before(py) != px)
     {
@@ -340,10 +346,12 @@ static int blocks_test14()
  */
 static int blocks_test15()
 {
-    uint8_t buf[256]__attribute__((aligned));
+    uint8_t buf[256] __attribute__((aligned));
     struct block *x = (struct block*) buf;
     set_size(x, 40);
-    set_flag(x, used, 1);
+    set_flag(x, unused, 1);
+    size_t *payload = get_payload(x);
+    *payload = 0;
     struct block *y = get_after(x);
     set_size(y, 60);
     if (true_size(x) <= get_size(x) || true_size(x) <= get_size(x + block_full_size(y)))

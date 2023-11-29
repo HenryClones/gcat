@@ -10,7 +10,7 @@
  * @param step the multiplier to offset
  * @return the desired position or NULL if invalid
  */
-void *bounds_checked_access(void *pointer, int base, int offset, int step)
+void *bounds_checked_access(void *pointer, size_t base, size_t offset, size_t step)
 {
     void *desired_position = (uint8_t *) pointer + base + offset * step;
     if (in_block(pointer, desired_position))
