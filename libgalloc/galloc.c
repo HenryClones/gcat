@@ -16,6 +16,7 @@ static struct block *find_mem(struct block *ptr)
     if (ptr == NULL)
     {
         ptr = get_mem(ptr);
+        set_prevflag(ptr, used);
         set_flag(ptr, used, 0);
         set_size(ptr, INITIAL_SIZE);
         free_block(ptr, ptr, 0);
@@ -40,17 +41,6 @@ void *get_unused(size_t size)
         position = get_mem(get_next(position)));
     get_mem(position + size);
     return get_payload(position);
-}
-
-/**
- * Get a block's header.
- * @param position the position to the block
- * @return the block's header position, or NULL if it is not in the right area
- */
-static struct block * __attribute__ ((const)) get_block_header(void *position)
-{
-    // The block position
-    return (struct block *) ((uint8_t *) position - offsetof(struct block, payload));
 }
 
 /**

@@ -58,6 +58,7 @@ struct block
 // block_properties.c
 
 void set_flag(struct block *blk, liberty new, int has_next);
+void set_prevflag(struct block *blk, liberty new);
 liberty get_flag(struct block *blk);
 liberty get_prevflag(struct block *blk);
 void set_size(struct block *blk, size_t size);
@@ -83,6 +84,7 @@ struct block *get_before(struct block *blk);
 struct block *coalesce(struct block *min, struct block *max, struct block *blk, size_t desired_size);
 size_t true_size(struct block *blk);
 struct block *free_block(struct block *blk, struct block *next, int has_after);
+struct block * __attribute__ ((const)) get_block_header(void *position);
 
 #endif // GCAT_BLOCKS_H
 

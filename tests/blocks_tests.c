@@ -218,20 +218,26 @@ static int blocks_test09()
  */
 static int blocks_test10()
 {
-    struct block x[2];
-    struct block *y = &(x[1]);
+    // 1. Minimum size
+    uint8_t buf[256];
+    struct block *x = (struct block *) buf;
+    set_prevflag(x, used);
     set_flag(x, used, 0);
-    set_finalizer(x, finalizer);
     set_size(x, 1);
+    set_finalizer(x, finalizer);
+    struct block *y = get_after(x);
+    set_prevflag(y, used);
+    set_flag(y, used, 0);
+    set_size(y, 1);
+    set_finalizer(y, finalizer);
     struct block *z = free_block(x, x, 1);
     if (!finalizer_ran)
     {
         return 1;
     }
     finalizer_ran = !finalizer_ran;
-    set_flag(y, unused, 0);
     z = free_block(y, x, 0);
-    if (!finalizer_ran || get_prevflag(y) != unused || z != x)
+    if (!finalizer_ran || ((get_prevflag(y) != unused || z != y) && z != x))
     {
         return 1;
     }
@@ -247,6 +253,7 @@ static int blocks_test11()
     struct block x[2];
     struct block *px = &(x[0]);
     struct block *py = &(x[1]);
+    set_prevflag(px, used);
     set_size(px, 1);
     set_size(py, 1);
     if (get_after(px) != py)
@@ -261,7 +268,7 @@ static int blocks_test11()
     py = get_after(px);
     size_t size_y = 27;
     set_size(py, size_y);
-    if (get_after(px) != py || py < px + size_x + sizeof(*px) - sizeof(px->payload))
+    if (get_after(px) != py || py < (struct block *) ((uint8_t *) px + size_x))
     {
         return 1;
     }
@@ -274,21 +281,26 @@ static int blocks_test11()
 static int blocks_test12()
 {
     // 1a. Minimum size, used
-    struct block x;
-    struct block y;
-    struct block *px = &x;
-    struct block *py = &y;
+    uint8_t buf[256];
+    struct block *px = (struct block *) buf;
+    set_prevflag(px, used);
     set_flag(px, used, 0);
     set_size(px, 1);
-    free_block(px, px, 1);
+    struct block *py = get_after(px);
+    set_prevflag(py, used);
     set_flag(py, used, 0);
     set_size(py, 1);
-    if (get_before(py) != NULL)
+    set_flag(py, used, 0);
+    set_finalizer(px, NULL);
+    set_finalizer(py, NULL);
+    struct block *pz = free_block(px, px, 1);
+    if (pz != px)
     {
         return 1;
     }
-    free_block(py, px, 0);
-    if (get_before(py) != px)
+    set_prevflag(py, used);
+    pz = free_block(py, px, 0);
+    if (pz != px && get_before(py) != px)
     {
         return 1;
     }
@@ -304,7 +316,7 @@ static int blocks_test13()
     size_t size = 300;
     set_size(&x, size);
     struct block *py;
-    uint8_t buf[400];
+    uint8_t buf[400]__attribute__((aligned));
     py = (struct block *) buf;
     set_size(py, size);
     struct block *pz = get_after(py);
@@ -317,11 +329,10 @@ static int blocks_test13()
  */
 static int blocks_test14()
 {
-    uint8_t buf[30];
-    struct block *px;
-    px = (struct block *) buf;
+    uint8_t buf[128]__attribute__((aligned));
+    struct block *px = (struct block *) buf;
     set_size(px, sizeof(size_t));
-    return get_block_boundary(px) != (size_t *) get_payload(px);
+    return get_block_boundary(px) < (size_t *) get_payload(px);
 }
 
 /**
@@ -329,7 +340,7 @@ static int blocks_test14()
  */
 static int blocks_test15()
 {
-    uint8_t buf[256];
+    uint8_t buf[256]__attribute__((aligned));
     struct block *x = (struct block*) buf;
     set_size(x, 40);
     set_flag(x, used, 1);

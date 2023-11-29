@@ -12,7 +12,6 @@ size_t block_full_size(struct block *blk)
  * Block boundary.
  * @pure
  * @param blk the block
- * @param size the size for where the boundary is
  * @return the size_t area to place it at
  */
 size_t *get_block_boundary(struct block *blk)
@@ -71,20 +70,21 @@ size_t true_size(struct block *blk)
  */
 struct block *free_block(struct block *blk, struct block *next, int has_after)
 {
-    if (blk->header.used_block.finalizer != NULL)
+    if (get_flag(blk) == used)
     {
-        // Execute finalizer over payload
-        typedef void(* finalizer)(void *);
-        ((finalizer) get_finalizer(blk))(get_payload(blk));
+        if (get_finalizer(blk) != NULL)
+        {
+            // Execute finalizer over payload
+            typedef void(* finalizer)(void *);
+            ((finalizer) get_finalizer(blk))(get_payload(blk));
+        }
     }
-    // The block is now unused
-    set_next(blk, next);
-    set_prev(blk, get_prev(next));
     // Be unused
     set_flag(blk, unused, has_after);
     set_size(blk, get_size(blk));
-    // And reassign the correct one
-    struct block *before = get_before(blk);
+    // The block is now unused
+    set_next(blk, next);
+    set_prev(blk, get_next(next));
     // Size parameter to find blocks in constant time
     if (has_after || get_size(blk) > sizeof(size_t) * 2)
     {
@@ -97,20 +97,18 @@ struct block *free_block(struct block *blk, struct block *next, int has_after)
             *pl += block_full_size(after);
             set_prev(after, blk);
         }
+        // And reassign the correct one
+        struct block *before = get_before(blk);
         if (before)
         {
-            struct block *before_end = get_before(before);
-            struct block *end;
-            if (before_end)
+            struct block *end = get_prev(before);
+            if (get_before(before) && end)
             {
-                end = get_prev(before_end);
-                set_prev(blk, end);
+                before = end;
             }
-            else
-            {
-                end = get_prev(before);
-                set_prev(blk, end);
-            }
+            set_prev(blk, before);
+            size_t *size_spot = (size_t *) get_payload(before);
+            *size_spot = get_size(before) + *pl;
             blk = before;
         }
     }
@@ -141,8 +139,7 @@ struct block *get_before(struct block *blk)
     if (get_prevflag(blk) == unused)
     {
         // At the end of an unused block there is a size_t
-        size_t *boundary = ((size_t *) blk) - 1;
-        return blk + *boundary;
+        return get_block_header((uint8_t *) blk - *((size_t *) blk) - 1);
     }
     return NULL;
 }

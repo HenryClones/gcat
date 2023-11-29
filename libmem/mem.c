@@ -9,7 +9,7 @@ void *gcat_mem_end = NULL;
 
 // I will use 0x6CA700000000 as the base address for now
 // This splits it farther than any practical system in the current day
-#define SYSTEM_DEPENDENT_MMAP_BASE_ADDR ((void *) 0xA76C00000000)
+#define SYSTEM_DEPENDENT_MMAP_BASE_ADDR ((void *) 0x6CA700000000)
 #define SYSTEM_DEPENDENT_MMAP_MASK 0x1FFFFFFFF
 
 /**
@@ -40,5 +40,5 @@ void *get_mem(void *addr)
  */
 int __attribute__((const)) is_managed(void *addr)
 {
-    return !((uintptr_t) addr & ~((uintptr_t) SYSTEM_DEPENDENT_MMAP_BASE_ADDR | SYSTEM_DEPENDENT_MMAP_MASK));
+    return !((uintptr_t) SYSTEM_DEPENDENT_MMAP_BASE_ADDR ^ (((uintptr_t) addr & ~SYSTEM_DEPENDENT_MMAP_MASK)));
 }

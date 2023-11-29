@@ -17,6 +17,16 @@ void set_flag(struct block *blk, liberty new, int has_next)
 }
 
 /**
+ * Set this block's prev used flag.
+ * @param blk this block
+ * @param new the new status of used/free
+ */
+void set_prevflag(struct block *blk, liberty new)
+{
+    blk->flags.prev_unused = new;
+}
+
+/**
  * Get this block's used flag.
  * @param blk this block
  * @return the status of used/free
@@ -53,11 +63,10 @@ size_t get_size(struct block *blk)
 void set_size(struct block *blk, size_t size)
 {
     // Should be alignof?
-    #ifndef alignof
-    #define alignof sizeof
-    #endif
-    #define padof(type, x) alignof(type) - x % alignof(type)
-    size += padof(*blk, size);
+    if (size % sizeof(struct block) != 0)
+    {
+        size += sizeof(struct block) - size % sizeof(struct block);
+    }
     blk->size = size;
     
     // Bottom of block has boundary tag if free
@@ -185,4 +194,15 @@ void set_finalizer(struct block *blk, void(* finalizer)(void *))
 void* get_finalizer(struct block *blk)
 {
     return blk->header.used_block.finalizer;
+}
+
+/**
+ * Get a block's header.
+ * @param position the position to the block
+ * @return the block's header position, or NULL if it is not in the right area
+ */
+struct block * __attribute__ ((const)) get_block_header(void *position)
+{
+    // The block position
+    return (struct block *) ((uint8_t *) position - offsetof(struct block, payload));
 }

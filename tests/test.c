@@ -68,7 +68,7 @@ int main(int argc, char **argv)
     printf("%s\n", (char*) funner_memory);
     
     // And unused the blocks at the end
-    burr_stack((void*) 0);
+    burr_stack(NULL);
     burr_stack(&argc);
     burr_stack(fun_memory);
     burr_stack(funnest_memory);
