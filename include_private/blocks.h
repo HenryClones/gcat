@@ -15,12 +15,7 @@ struct block
     // The size of a block.
     size_t size;
     // Flag data associated with a block
-    struct
-    {
-        // coalescence: unused -> !prev_unused
-        liberty unused;
-        liberty prev_unused;
-    } flags;
+    block_flags flags;
 
     union
     {
@@ -52,15 +47,15 @@ struct block
     // The payload, offsetof must work here
     // uint64_t forces alignment on 64-bit systems for now
     // Ends with the size
-    uint8_t payload[VARIABLE_LENGTH_ARRAY];
+    uint8_t payload[VARIABLE_LENGTH_ARRAY] __attribute__((aligned));
 } __attribute__((aligned));
 
 // block_properties.c
-
-void set_flag(struct block *blk, liberty new, int has_next);
-void set_prevflag(struct block *blk, liberty new);
-liberty get_flag(struct block *blk);
-liberty get_prevflag(struct block *blk);
+void init_flags(struct block *blk);
+void set_used(struct block *blk, int new, int has_next);
+void set_prevused(struct block *blk, int new);
+int get_used(struct block *blk);
+int get_prevused(struct block *blk);
 void set_size(struct block *blk, size_t size);
 size_t get_size(struct block *blk);
 void set_prev(struct block *blk, struct block *prev);
@@ -76,7 +71,6 @@ void set_finalizer(struct block *blk, void(* finalizer)(void *));
 void *get_finalizer(struct block *blk);
 
 // block_array.c
-
 size_t block_full_size(struct block *blk);
 size_t *get_block_boundary(struct block *blk);
 struct block *get_after(struct block *blk);

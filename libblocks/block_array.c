@@ -30,7 +30,7 @@ struct block *coalesce(struct block *min, struct block *max, struct block *blk, 
     // Blocks after this one
     struct block *after;
     for (after = get_after(blk);
-        blk->size < desired_size && after >= min && after < max && get_flag(after) == unused;
+        blk->size < desired_size && after >= min && after < max && !get_used(after);
         after = get_after(blk))
     {
         blk->size += block_full_size(after);
@@ -70,7 +70,7 @@ size_t true_size(struct block *blk)
  */
 struct block *free_block(struct block *blk, struct block *next, int has_after)
 {
-    if (get_flag(blk) == used)
+    if (get_used(blk))
     {
         if (get_finalizer(blk) != NULL)
         {
@@ -80,43 +80,22 @@ struct block *free_block(struct block *blk, struct block *next, int has_after)
         }
     }
     // The block is now unused
+    set_used(blk, 1, has_after);
     set_next(blk, next);
     set_prev(blk, get_next(next));
-    // Add in true size
-    size_t size = 0;
-    // Especially the blocks before this one
-    struct block *before = get_before(blk);
+    // Assimilate before blocks
+    struct block* before = get_before(blk);
     if (before)
     {
-        struct block *end = get_prev(before);
-        if (end)
-        {
-            before = end;
-        }
-        set_prev(blk, before);
-        size += block_full_size(blk);
+        set_size(before, get_size(before) + block_full_size(blk));
         blk = before;
     }
-    // Size parameter to find blocks in constant time
+    // Assimilate after blocks
     if (has_after)
     {
-        struct block *after = get_after(blk);
-        if (has_after && get_flag(after) == unused)
-        {
-            size += block_full_size(after);
-            set_prev(after, blk);
-        }
-        // And reassign the correct one
+        struct block* after = get_after(blk);
+        set_size(blk, get_size(blk) + block_full_size(after));
     }
-    // Place the size into the true size field
-    if (get_size(blk) >= sizeof(size_t) * 2)
-    {
-        size_t *pl = get_payload(blk);
-        *pl = size;
-    }
-    // Be unused
-    set_flag(blk, unused, has_after);
-    set_size(blk, get_size(blk));
     return blk;
 }
 
@@ -141,7 +120,7 @@ struct block *get_after(struct block *blk)
  */
 struct block *get_before(struct block *blk)
 {
-    if (get_prevflag(blk) == unused)
+    if (!get_prevused(blk))
     {
         // At the end of an unused block there is a size_t
         return get_block_header((uint8_t *) blk - *((size_t *) blk - 1) - 0x10);

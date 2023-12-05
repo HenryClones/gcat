@@ -16,8 +16,8 @@ static struct block *find_mem(struct block *ptr)
     if (ptr == NULL)
     {
         ptr = get_mem(ptr);
-        set_prevflag(ptr, used);
-        set_flag(ptr, used, 0);
+        set_prevused(ptr, 0);
+        set_used(ptr, 0, 0);
         set_size(ptr, INITIAL_SIZE);
         free_block(ptr, ptr, 0);
     }
@@ -56,7 +56,7 @@ void *use_block(void *block, void (*finalizer)(void *), size_t size)
     set_size(blk, size);
     size_t next_size = block_full_size(blk);
     int has_after = is_managed(get_payload(blk) + next_size);
-    set_flag(blk, used, has_after);
+    set_used(blk, 0, has_after);
     set_finalizer(blk, finalizer);
 
     if (next_size >= sizeof(struct block) + sizeof(size_t) * 2)
@@ -72,7 +72,7 @@ void *use_block(void *block, void (*finalizer)(void *), size_t size)
         }
 
         set_size(after, next_size);
-        set_flag(after, unused, is_managed(get_after(blk)));
+        set_used(after, 1, is_managed(get_after(blk)));
         set_next(after, next);
         set_next(after, prev);
         last_unused = after;

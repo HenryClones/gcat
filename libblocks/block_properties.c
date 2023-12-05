@@ -5,15 +5,27 @@
  * @param blk this block
  * @param new the new status of used/free
  */
-void set_flag(struct block *blk, liberty new, int has_next)
+void set_used(struct block *blk, int new, int has_next)
 {
-    blk->flags.unused = new;
+    if (new)
+    {
+        blk->flags &= ~free;
+    }
+    else
+    {
+        blk->flags |= free;
+    }
 
     if (has_next)
     {
         struct block *next = get_after(blk);
-        next->flags.prev_unused = new;
+        set_prevused(next, new);
     }
+}
+
+void init_flags(struct block *blk)
+{
+    blk->flags = 0;
 }
 
 /**
@@ -21,9 +33,16 @@ void set_flag(struct block *blk, liberty new, int has_next)
  * @param blk this block
  * @param new the new status of used/free
  */
-void set_prevflag(struct block *blk, liberty new)
+void set_prevused(struct block *blk, int new)
 {
-    blk->flags.prev_unused = new;
+    if (new)
+    {
+        blk->flags &= ~prev_free;
+    }
+    else
+    {
+        blk->flags |= prev_free;
+    }
 }
 
 /**
@@ -31,9 +50,9 @@ void set_prevflag(struct block *blk, liberty new)
  * @param blk this block
  * @return the status of used/free
  */
-liberty get_flag(struct block *blk)
+int get_used(struct block *blk)
 {
-    return blk->flags.unused;
+    return !(blk->flags & free);
 }
 
 /**
@@ -41,9 +60,9 @@ liberty get_flag(struct block *blk)
  * @param blk this block
  * @return the status of used/free
  */
-liberty get_prevflag(struct block *blk)
+int get_prevused(struct block *blk)
 {
-    return blk->flags.prev_unused;
+    return !(blk->flags & prev_free);
 }
 
 /**
@@ -70,7 +89,7 @@ void set_size(struct block *blk, size_t size)
     blk->size = size;
     
     // Bottom of block has boundary tag if free
-    if (get_flag(blk) == unused)
+    if (get_used(blk) == 1)
     {
         size_t *boundary = get_block_boundary(blk);
         *boundary = size;
@@ -191,7 +210,7 @@ void set_finalizer(struct block *blk, void(* finalizer)(void *))
  * @pre blk is a valid block which is currently used
  * @param blk the pointer to the block in GCAT to add a reference to
  */
-void* get_finalizer(struct block *blk)
+void * get_finalizer(struct block *blk)
 {
     return blk->header.used_block.finalizer;
 }
