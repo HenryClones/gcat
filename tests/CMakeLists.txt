@@ -38,7 +38,8 @@ add_test(NAME TestBlocks14 COMMAND "./${PROJECT_NAME}" blocks14)
 
 # Galloc test
 add_test(NAME TestGalloc COMMAND "./${PROJECT_NAME}" galloc)
-add_test(NAME TestGalloc1 COMMAND "./${PROJECT_NAME}" galloc1)
+add_test(NAME TestGalloc1 COMMAND "./${PROJECT_NAME}" galloc01)
+add_test(NAME TestGalloc2 COMMAND "./${PROJECT_NAME}" galloc02)
 
 # GCAT library test
 #add_test(NAME TestGcat COMMAND "./${PROJECT_NAME}" gcat)

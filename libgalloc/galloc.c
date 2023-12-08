@@ -2,7 +2,7 @@
 #include "mem.h"
 #include "galloc.h"
 
-#define INITIAL_SIZE 1000
+#define INITIAL_SIZE 1 << 24
 
 // The last unused block by gcat
 struct block *last_unused = NULL;
@@ -16,9 +16,9 @@ static struct block *find_mem(struct block *ptr)
     if (ptr == NULL)
     {
         ptr = get_mem(ptr);
-        set_prevused(ptr, 0);
-        set_used(ptr, 0, 0);
+        init_flags(ptr);
         set_size(ptr, INITIAL_SIZE);
+        set_finalizer(ptr, NULL);
         free_block(ptr, ptr, 0);
     }
     return ptr;
@@ -33,10 +33,9 @@ static struct block *find_mem(struct block *ptr)
 void *get_unused(size_t size)
 {
     // initialize last_unused
-    last_unused = find_mem(last_unused);
     // walk down the chain and grab the first free block's payload
     struct block *position;
-    for (position = get_mem(last_unused);
+    for (position = get_mem(last_unused = find_mem(last_unused));
         get_size(position) < size && get_next(position) != last_unused;
         position = get_mem(get_next(position)));
     get_mem(position + size);
@@ -49,34 +48,56 @@ void *get_unused(size_t size)
  */
 void *use_block(void *block, void (*finalizer)(void *), size_t size)
 {
+    // Get this block and its siblings
     struct block *blk = get_block_header(block);
     struct block *next = get_next(blk);
     struct block *prev = get_prev(blk);
 
-    set_size(blk, size);
-    size_t next_size = block_full_size(blk);
-    int has_after = is_managed(get_payload(blk) + next_size);
-    set_used(blk, 0, has_after);
-    set_finalizer(blk, finalizer);
+    // Get the padding to create a free block after this one
+    size_t padding = size - block_full_size(blk);
 
-    if (next_size >= sizeof(struct block) + sizeof(size_t) * 2)
+    // If the padding is big enough to create a new block
+    if (padding >= sizeof(struct block))
     {
+        set_size(blk, size);
         struct block *after = get_after(blk);
+        set_used(blk, 1, 1);
+        // Make the padding into a block payload size
+        padding -= sizeof(struct block);
+        // Then make that free block
+        set_used(after, 0, is_managed(get_after(after)));
+        // Set last_unused
+        last_unused = after;
+        set_next(last_unused, next);
+        set_prev(last_unused, prev);
+    }
+    // Otherwise, add the padding to the size so it can fit
+    else
+    {
+        size += padding;
+        set_size(blk, size);
+        set_used(blk, 1, is_managed(blk));
+        // Set it here, too
         if (next == blk)
         {
-            next = after;
+            last_unused = next;
+            set_prev(last_unused, prev);
         }
-        if (prev == blk)
+        else if (prev == blk)
         {
-            prev = after;
+            last_unused = prev;
+            set_next(last_unused, next);
         }
-
-        set_size(after, next_size);
-        set_used(after, 1, is_managed(get_after(blk)));
-        set_next(after, next);
-        set_next(after, prev);
-        last_unused = after;
+        else
+        {
+            last_unused = NULL;
+        }
+        last_unused = blk;
     }
+
+    // Then, finish setting the block as used
+    set_finalizer(blk, finalizer);
+    set_ref_strong(blk, 1);
 
     return get_payload(blk);
 }

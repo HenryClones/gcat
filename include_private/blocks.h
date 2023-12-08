@@ -8,7 +8,6 @@ extern "C" {
 #include "types.h"
 #include <stdint.h>
 
-#define VARIABLE_LENGTH_ARRAY 1
 // Handle every type of block
 struct block
 {
@@ -47,7 +46,7 @@ struct block
     // The payload, offsetof must work here
     // uint64_t forces alignment on 64-bit systems for now
     // Ends with the size
-    uint8_t payload[VARIABLE_LENGTH_ARRAY] __attribute__((aligned));
+    uint8_t payload[sizeof(size_t)] __attribute__((aligned));
 } __attribute__((aligned));
 
 // block_properties.c
