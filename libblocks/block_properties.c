@@ -1,4 +1,9 @@
 #include <blocks.h>
+#ifdef __BIGGEST_ALIGNMENT__
+#define BLOCK_ALIGN __BIGGEST_ALIGNMENT__
+#else
+#define BLOCK_ALIGN alignof(max_align_t)
+#endif // BLOCK_ALIGN
 
 /**
  * Set this block's used flag.
@@ -92,10 +97,9 @@ size_t *get_block_boundary(struct block *blk)
  */
 void set_size(struct block *blk, size_t size)
 {
-    // Should be alignof?
-    if (size % sizeof(struct block) != 0)
+    if (size % BLOCK_ALIGN != 0)
     {
-        size += sizeof(struct block) - size % sizeof(struct block);
+        size += BLOCK_ALIGN - size % BLOCK_ALIGN;
     }
     blk->size = size;
     
@@ -215,11 +219,11 @@ void set_finalizer(struct block *blk, void(* finalizer)(void *))
 {
     if (finalizer)
     {
-        blk->flags = blk->flags & has_finalizer;
+        blk->flags |= has_finalizer;
     }
     else
     {
-        blk->flags = blk->flags | ~has_finalizer;
+        blk->flags &= ~has_finalizer;
     }
     blk->header.used_block.finalizer = finalizer;
 }

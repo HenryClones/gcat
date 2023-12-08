@@ -58,7 +58,7 @@ static int blocks_test02()
 static int blocks_test03()
 {
     struct block x;
-    size_t y = 100;
+    size_t y = 1;
     init_flags(&x);
     set_used(&x, 0, 0);
     set_size(&x, y);
@@ -68,7 +68,7 @@ static int blocks_test03()
     }
     
     y = 50;
-
+    set_used(&x, 1, 0);
     set_size(&x, y);
     if (get_size(&x) < y)
     {
@@ -232,7 +232,7 @@ static int blocks_test09()
 static int blocks_test10()
 {
     // 1. Minimum size
-    uint8_t buf[256];
+    uint8_t buf[256] __attribute__((aligned));
     struct block *x = (struct block *) buf;
     init_flags(x);
     set_size(x, 1);
@@ -295,7 +295,7 @@ static int blocks_test11()
 static int blocks_test12()
 {
     // 1a. Minimum size, used
-    uint8_t buf[256];
+    uint8_t buf[256] __attribute__((aligned));
     struct block *px = (struct block *) buf;
     init_flags(px);
     set_size(px, 1);
@@ -311,7 +311,7 @@ static int blocks_test12()
     }
     if (get_before(get_after(px)) != px)
     {
-        return 3;
+        return 1;
     } 
     if (pz != px)
     {
