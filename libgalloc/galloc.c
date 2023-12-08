@@ -193,5 +193,5 @@ int in_block(void *block, void *position)
     struct block *blk = get_block_header(block);
     return is_managed(block) && is_managed(position) &&
            (uint8_t *) position >= (uint8_t *) block &&
-           get_size(blk) + (uint8_t *) blk >= (uint8_t *) position;
+           (uint8_t *) block + get_size(blk) > (uint8_t *) position;
 }

@@ -4,17 +4,17 @@
 #include "string.h"
 
 /**
- * Test galloc.h find_mem.
+ * Test galloc.h get_unused.
  */
 int galloc_test01()
 {
     struct block *x = get_unused(10);
     struct block *y = get_unused(10);
-    if (x == y)
+    if (x != y)
     {
-        return 0;
+        return 1;
     }
-    return 1;
+    return 0;
 }
 
 /**
@@ -86,6 +86,12 @@ int galloc_test07()
  */
 int galloc_test08()
 {
+    size_t len = 64;
+    uint8_t *z = use_block(get_unused(len), NULL, len);
+    if (!in_block(z, z + 0) || !in_block(z, z + len - 1) || in_block(z, z - 1) || in_block(z, z + len) || in_block(z, NULL))
+    {
+        return 1;
+    }
     return 0;
 }
 
