@@ -50,7 +50,7 @@ int galloc_test03()
 }
 
 /**
- * Test galloc.h.
+ * Test galloc.h increase_strong_users.
  */
 int galloc_test04()
 {
@@ -58,7 +58,7 @@ int galloc_test04()
 }
 
 /**
- * Test galloc.h.
+ * Test galloc.h increase_total_users.
  */
 int galloc_test05()
 {
@@ -66,7 +66,7 @@ int galloc_test05()
 }
 
 /**
- * Test galloc.h.
+ * Test galloc.h decrease_strong_users.
  */
 int galloc_test06()
 {
@@ -74,7 +74,7 @@ int galloc_test06()
 }
 
 /**
- * Test galloc.h.
+ * Test galloc.h decrease_total_users.
  */
 int galloc_test07()
 {
@@ -82,7 +82,7 @@ int galloc_test07()
 }
 
 /**
- * Test galloc.h.
+ * Test galloc.h in_block.
  */
 int galloc_test08()
 {
