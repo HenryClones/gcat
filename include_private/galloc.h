@@ -14,8 +14,8 @@ void make_block_free(void *position);
 void *use_block(void *block, void (*finalizer)(void *), size_t size);
 void increase_strong_users(void *position);
 void increase_total_users(void *position);
-void decrease_strong_users(void *position);
-void decrease_total_users(void *position);
+int decrease_strong_users(void *position);
+int decrease_total_users(void *position);
 int in_block(void *block, void *position);
 
 #endif // GCAT_GALLOC_H

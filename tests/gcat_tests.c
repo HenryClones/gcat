@@ -152,20 +152,21 @@ static int gcat_test06()
     {
         // Fit the terminating null pointer
         data[i] = gall(8 * (i + 2), true_finalizer);
+        data[i][i + 1] = NULL;
     }
     // Do the setting as a separate step
     for (i = 0; i < blocks; ++i)
     {
         int j;
-        for (j = 0; j < i; ++j)
+        for (j = 0; j <= i; ++j)
         {
             if (i == 0)
             {
-                data[i][j] = data[blocks - 1];
+                data[i][j] = hew_heap(data[blocks - 1]);
             }
             else
             {
-                data[i][j] = data[i - 1];
+                data[i][j] = hew_heap(data[i - 1]);
             }
         }
     }
@@ -176,7 +177,7 @@ static int gcat_test06()
         {
             return 1;
         }
-        hew_stack(data[i]);
+        burr_stack(data[i]);
     }
     return freed_tally == blocks && data[0] == gall(64, NULL);
 }

@@ -56,8 +56,10 @@ void *hew_heap(void *pointer)
  */
 void burr_stack(void *block)
 {
-    decrease_strong_users(block);
-    make_block_free(block);
+    if (decrease_strong_users(block))
+    {
+        make_block_free(block);
+    }
 }
 
 /**
@@ -68,8 +70,10 @@ void burr_stack(void *block)
  */
 void burr_heap(void *block)
 {
-    decrease_total_users(block);
-    make_block_free(block);
+    if (decrease_total_users(block))
+    {
+        make_block_free(block);
+    }
 }
 
 /**
