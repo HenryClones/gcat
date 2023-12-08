@@ -54,6 +54,20 @@ int galloc_test03()
  */
 int galloc_test04()
 {
+    void *x = use_block(get_unused(64), NULL, 64);
+    struct block *bx = get_block_header(x);
+    int32_t users[2];
+    users[0] = get_ref_strong(bx);
+    users[1] = get_ref_total(bx);
+    if (users[0] == 0 || users[1] == 0)
+    {
+        return 1;
+    }
+    increase_strong_users(x);
+    if (users[0] != get_ref_strong(bx) - 1 || users[1] != get_ref_total(bx) - 1)
+    {
+        return 1;
+    }
     return 0;
 }
 
@@ -62,6 +76,20 @@ int galloc_test04()
  */
 int galloc_test05()
 {
+    void *x = use_block(get_unused(64), NULL, 64);
+    struct block *bx = get_block_header(x);
+    int32_t users[2];
+    users[0] = get_ref_strong(bx);
+    users[1] = get_ref_total(bx);
+    if (users[0] == 0 || users[1] == 0)
+    {
+        return 1;
+    }
+    increase_total_users(x);
+    if (users[0] != get_ref_strong(bx) || users[1] != get_ref_total(bx) - 1)
+    {
+        return 1;
+    }
     return 0;
 }
 
@@ -70,6 +98,20 @@ int galloc_test05()
  */
 int galloc_test06()
 {
+    void *x = use_block(get_unused(64), NULL, 64);
+    struct block *bx = get_block_header(x);
+    int32_t users[2];
+    users[0] = get_ref_strong(bx);
+    users[1] = get_ref_total(bx);
+    if (users[0] == 0 || users[1] == 0)
+    {
+        return 1;
+    }
+    decrease_strong_users(x);
+    if (users[0] != get_ref_strong(bx) + 1 || users[1] != get_ref_total(bx) + 1)
+    {
+        return 1;
+    }
     return 0;
 }
 
@@ -78,6 +120,20 @@ int galloc_test06()
  */
 int galloc_test07()
 {
+    void *x = use_block(get_unused(64), NULL, 64);
+    struct block *bx = get_block_header(x);
+    int32_t users[2];
+    users[0] = get_ref_strong(bx);
+    users[1] = get_ref_total(bx);
+    if (users[0] == 0 || users[1] == 0)
+    {
+        return 1;
+    }
+    decrease_total_users(x);
+    if (users[0] != get_ref_strong(bx) || users[1] != get_ref_total(bx) + 1)
+    {
+        return 1;
+    }
     return 0;
 }
 
