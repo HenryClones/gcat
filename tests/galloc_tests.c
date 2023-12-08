@@ -22,14 +22,13 @@ int galloc_test01()
  */
 int galloc_test02()
 {
-    struct block *x = get_unused(64);
-    struct block *z = use_block(x, NULL, 10);
-    struct block *y = get_unused(10);
-    if (x != z || x == y || get_after(z) != y)
+    struct block *x = get_block_header(get_unused(64));
+    struct block *z = get_block_header(use_block(get_payload(x), NULL, 10));
+    struct block *y = get_block_header(get_unused(10));
+    if (get_after(z) != y || x == y || x != z)
     {
-
+        return 1;
     }
-
     return 0;
 }
 

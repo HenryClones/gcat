@@ -54,7 +54,7 @@ void *use_block(void *block, void (*finalizer)(void *), size_t size)
     struct block *prev = get_prev(blk);
 
     // Get the padding to create a free block after this one
-    size_t padding = size - block_full_size(blk);
+    size_t padding = block_full_size(blk) - size;
 
     // If the padding is big enough to create a new block
     if (padding >= sizeof(struct block))
@@ -66,6 +66,7 @@ void *use_block(void *block, void (*finalizer)(void *), size_t size)
         padding -= sizeof(struct block);
         // Then make that free block
         set_used(after, 0, is_managed(get_after(after)));
+        set_size(after, padding);
         // Set last_unused
         last_unused = after;
         set_next(last_unused, next);
