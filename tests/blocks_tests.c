@@ -235,15 +235,13 @@ static int blocks_test10()
     uint8_t buf[256];
     struct block *x = (struct block *) buf;
     init_flags(x);
-    set_prevused(x, 1);
-    set_used(x, 1, 1);
     set_size(x, 1);
+    set_used(x, 1, 1);
     set_finalizer(x, finalizer);
     struct block *y = get_after(x);
     init_flags(y);
-    set_prevused(y, 0);
-    set_used(y, 1, 0);
     set_size(y, 1);
+    set_used(y, 1, 0);
     set_finalizer(y, finalizer);
     struct block *z = free_block(x, x, 1);
     if (!finalizer_ran || z != x)
@@ -252,7 +250,7 @@ static int blocks_test10()
     }
     finalizer_ran = !finalizer_ran;
     z = free_block(y, x, 0);
-    if (!finalizer_ran || ((!get_prevused(y) || z != y) && z != x))
+    if (!finalizer_ran || z != x)
     {
         return 1;
     }
@@ -270,7 +268,6 @@ static int blocks_test11()
     struct block *py = &(x[1]);
     init_flags(px);
     init_flags(py);
-    set_prevused(px, 1);
     set_size(px, 1);
     set_size(py, 1);
     if (get_after(px) != py)
@@ -301,21 +298,22 @@ static int blocks_test12()
     uint8_t buf[256];
     struct block *px = (struct block *) buf;
     init_flags(px);
-    set_prevused(px, 1);
     set_size(px, 1);
     struct block *py = get_after(px);
     init_flags(py);
-    set_used(px, 1, 1);
     set_size(py, 1);
-    set_used(py, 1, 0);
     set_finalizer(px, NULL);
     set_finalizer(py, NULL);
     struct block *pz = free_block(px, px, 1);
-    if (pz != px)
+    if (get_before(py) == NULL)
     {
         return 1;
     }
-    if (get_before(py) != NULL)
+    if (get_before(get_after(px)) != px)
+    {
+        return 3;
+    } 
+    if (pz != px)
     {
         return 1;
     }
@@ -355,26 +353,6 @@ static int blocks_test14()
     struct block *px = (struct block *) buf;
     set_size(px, sizeof(size_t));
     return get_block_boundary(px) < (size_t *) get_payload(px);
-}
-
-/**
- * Test blocks.h true_size.
- */
-static int blocks_test15()
-{
-    uint8_t buf[256] __attribute__((aligned));
-    struct block *x = (struct block*) buf;
-    set_size(x, 40);
-    set_used(x, 1, 1);
-    size_t *payload = get_payload(x);
-    *payload = 0;
-    struct block *y = get_after(x);
-    set_size(y, 60);
-    if (true_size(x) <= get_size(x) || true_size(x) <= get_size(x + block_full_size(y)))
-    {
-        return 0;
-    }
-    return 0;
 }
 
 /**
@@ -451,11 +429,6 @@ int blocks_tests(char *test)
     if (!strcmp(test, "blocks") || !strcmp(test, "blocks14"))
     {
         results |= blocks_test14();
-    }
-    
-    if (!strcmp(test, "blocks") || !strcmp(test, "blocks15"))
-    {
-        results |= blocks_test15();
     }
     
     return results;

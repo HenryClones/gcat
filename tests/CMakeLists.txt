@@ -20,7 +20,7 @@ add_test(NAME TestMem1 COMMAND "./${PROJECT_NAME}" mem1)
 add_test(NAME TestMem2 COMMAND "./${PROJECT_NAME}" mem2)
 
 # Blocks test
-#add_test(NAME TestBlocks COMMAND "./${PROJECT_NAME}" blocks)
+add_test(NAME TestBlocks COMMAND "./${PROJECT_NAME}" blocks)
 add_test(NAME TestBlocks01 COMMAND "./${PROJECT_NAME}" blocks01)
 add_test(NAME TestBlocks02 COMMAND "./${PROJECT_NAME}" blocks02)
 add_test(NAME TestBlocks03 COMMAND "./${PROJECT_NAME}" blocks03)
@@ -35,7 +35,6 @@ add_test(NAME TestBlocks11 COMMAND "./${PROJECT_NAME}" blocks11)
 add_test(NAME TestBlocks12 COMMAND "./${PROJECT_NAME}" blocks12)
 add_test(NAME TestBlocks13 COMMAND "./${PROJECT_NAME}" blocks13)
 add_test(NAME TestBlocks14 COMMAND "./${PROJECT_NAME}" blocks14)
-add_test(NAME TestBlocks15 COMMAND "./${PROJECT_NAME}" blocks15)
 
 # Galloc test
 add_test(NAME TestGalloc COMMAND "./${PROJECT_NAME}" galloc)

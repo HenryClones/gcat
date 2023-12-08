@@ -56,6 +56,7 @@ void set_used(struct block *blk, int new, int has_next);
 void set_prevused(struct block *blk, int new);
 int get_used(struct block *blk);
 int get_prevused(struct block *blk);
+size_t *get_block_boundary(struct block *blk);
 void set_size(struct block *blk, size_t size);
 size_t get_size(struct block *blk);
 void set_prev(struct block *blk, struct block *prev);
@@ -72,11 +73,9 @@ void *get_finalizer(struct block *blk);
 
 // block_array.c
 size_t block_full_size(struct block *blk);
-size_t *get_block_boundary(struct block *blk);
 struct block *get_after(struct block *blk);
 struct block *get_before(struct block *blk);
 struct block *coalesce(struct block *min, struct block *max, struct block *blk, size_t desired_size);
-size_t true_size(struct block *blk);
 struct block *free_block(struct block *blk, struct block *next, int has_after);
 struct block * __attribute__ ((const)) get_block_header(void *position);
 

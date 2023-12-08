@@ -76,6 +76,17 @@ size_t get_size(struct block *blk)
 }
 
 /**
+ * Block boundary.
+ * @param blk the block
+ * @return the size_t area to place it at
+ */
+size_t *get_block_boundary(struct block *blk)
+{
+    size_t *payload = get_payload(blk);
+    return payload + get_size(blk) / sizeof(size_t) - 1;
+}
+
+/**
  * Set a block's size.
  * @param blk the block to set the size of, it will be at least size
  */
@@ -89,7 +100,7 @@ void set_size(struct block *blk, size_t size)
     blk->size = size;
     
     // Bottom of block has boundary tag if free
-    if (get_used(blk) == 1)
+    if (!get_used(blk))
     {
         size_t *boundary = get_block_boundary(blk);
         *boundary = size;
@@ -202,6 +213,14 @@ void *get_payload(struct block *blk)
  */
 void set_finalizer(struct block *blk, void(* finalizer)(void *))
 {
+    if (finalizer)
+    {
+        blk->flags = blk->flags & has_finalizer;
+    }
+    else
+    {
+        blk->flags = blk->flags | ~has_finalizer;
+    }
     blk->header.used_block.finalizer = finalizer;
 }
 
@@ -210,7 +229,7 @@ void set_finalizer(struct block *blk, void(* finalizer)(void *))
  * @pre blk is a valid block which is currently used
  * @param blk the pointer to the block in GCAT to add a reference to
  */
-void * get_finalizer(struct block *blk)
+void *get_finalizer(struct block *blk)
 {
     return blk->header.used_block.finalizer;
 }

@@ -9,18 +9,6 @@ size_t block_full_size(struct block *blk)
 }
 
 /**
- * Block boundary.
- * @pure
- * @param blk the block
- * @return the size_t area to place it at
- */
-size_t *get_block_boundary(struct block *blk)
-{
-    size_t *payload = get_payload(blk);
-    return payload + get_size(blk) / sizeof(size_t);
-}
-
-/**
  * Coalesce all unused blocks around this one in the best way possible.
  * @pre blk is unused
  * @post blk may not be valid and is agglomerated as a larger unused block
@@ -49,19 +37,6 @@ struct block *coalesce(struct block *min, struct block *max, struct block *blk, 
 }
 
 /**
- * Get the true size of this block after coalescence.
- */
-size_t true_size(struct block *blk)
-{
-    size_t size = get_size(blk);
-    if (size >= sizeof(size_t) * 2)
-    {
-        size += *((size_t *) get_payload(blk));
-    }
-    return size;
-}
-
-/**
  * Free a block. next != NULL
  * @pre block is used and has no users and last_unused != NULL
  * @post block will be freed up and coalesced
@@ -70,32 +45,30 @@ size_t true_size(struct block *blk)
  */
 struct block *free_block(struct block *blk, struct block *next, int has_after)
 {
-    if (get_used(blk))
+    if (get_finalizer(blk) != NULL)
     {
-        if (get_finalizer(blk) != NULL)
-        {
-            // Execute finalizer over payload
-            typedef void(* finalizer)(void *);
-            ((finalizer) get_finalizer(blk))(get_payload(blk));
-        }
+        // Execute finalizer over payload
+        typedef void(* finalizer)(void *);
+        ((finalizer) get_finalizer(blk))(get_payload(blk));
     }
-    // The block is now unused
-    set_used(blk, 1, has_after);
-    set_next(blk, next);
-    set_prev(blk, get_next(next));
     // Assimilate before blocks
+    // Assimilate after blocks
+    struct block* after = get_after(blk);
+    if (has_after && !get_used(after))
+    {
+        set_size(blk, get_size(blk) + block_full_size(after));
+    }
     struct block* before = get_before(blk);
     if (before)
     {
         set_size(before, get_size(before) + block_full_size(blk));
         blk = before;
     }
-    // Assimilate after blocks
-    if (has_after)
-    {
-        struct block* after = get_after(blk);
-        set_size(blk, get_size(blk) + block_full_size(after));
-    }
+    // The block is now unused
+    set_used(blk, 0, has_after);
+    set_next(blk, next);
+    set_prev(blk, get_next(next));
+    set_size(blk, get_size(blk));
     return blk;
 }
 
@@ -110,7 +83,7 @@ struct block *get_after(struct block *blk)
     // Make sure to remember struct block pointers are not byte sized.
     // Size should be a multiple of max_align
     // size_t will fit at end of size
-    return (struct block *)((uint8_t *) blk + get_size(blk));
+    return (struct block *)((uint8_t *) get_payload(blk) + get_size(blk));
 }
 
 /**
@@ -123,7 +96,7 @@ struct block *get_before(struct block *blk)
     if (!get_prevused(blk))
     {
         // At the end of an unused block there is a size_t
-        return get_block_header((uint8_t *) blk - *((size_t *) blk - 1) - 0x10);
+        return get_block_header((uint8_t *) blk - *((size_t *) blk - 1));
     }
     return NULL;
 }
