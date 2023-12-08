@@ -48,8 +48,8 @@ add_test(NAME TestGalloc7 COMMAND "./${PROJECT_NAME}" galloc07)
 add_test(NAME TestGalloc8 COMMAND "./${PROJECT_NAME}" galloc08)
 
 # GCAT library test
-#add_test(NAME TestGcat COMMAND "./${PROJECT_NAME}" gcat)
-#add_test(NAME TestGcat01 COMMAND "./${PROJECT_NAME}" gcat01)
+add_test(NAME TestGcat COMMAND "./${PROJECT_NAME}" gcat)
+add_test(NAME TestGcat01 COMMAND "./${PROJECT_NAME}" gcat01)
 add_test(NAME TestGcat02 COMMAND "./${PROJECT_NAME}" gcat02)
 add_test(NAME TestGcat03 COMMAND "./${PROJECT_NAME}" gcat03)
 add_test(NAME TestGcat04 COMMAND "./${PROJECT_NAME}" gcat04)

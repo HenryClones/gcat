@@ -1,6 +1,6 @@
 #include <string.h>
 #include <stdint.h>
-#include "gcat.h"
+#include <gcat.h>
 #include "gcat_tests.h"
 
 /**
@@ -24,11 +24,12 @@ static int gcat_test01()
         return 1;
     }
     uint32_t *z = (uint32_t *) bounds_checked_access(data1, 0, 1, sizeof(uint32_t));
-    if (x != z || *x != *z)
+    *z = 11;
+    if (x == z || *x == *z || x == y || *x == *y)
     {
         return 1;
     }
-    return 1;
+    return 0;
 }
 
 /**
