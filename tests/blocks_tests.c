@@ -277,9 +277,11 @@ static int blocks_test11()
     // 2. Bigger blocks
     uint8_t buf[512]__attribute__((aligned));
     px = (struct block *)buf;
+    init_flags(px);
     size_t size_x = 230;
     set_size(px, size_x);
     py = get_after(px);
+    init_flags(py);
     size_t size_y = 27;
     set_size(py, size_y);
     if (get_after(px) != py || py < (struct block *) ((uint8_t *) px + size_x))
@@ -340,6 +342,7 @@ static int blocks_test13()
     init_flags(py);
     set_size(py, size);
     struct block *pz = get_after(py);
+    init_flags(pz);
     set_size(pz, 10);
     return block_full_size(&x) != block_full_size(py) || block_full_size(pz) == block_full_size(&x);
 }
@@ -351,6 +354,7 @@ static int blocks_test14()
 {
     uint8_t buf[128]__attribute__((aligned));
     struct block *px = (struct block *) buf;
+    init_flags(px);
     set_size(px, sizeof(size_t));
     return get_block_boundary(px) < (size_t *) get_payload(px);
 }
