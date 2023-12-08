@@ -17,6 +17,7 @@ static int select_test(char *test)
 
     results |= blocks_tests(test);
     results |= gcat_tests(test);
+    results |= galloc_tests(test);
     
     if (!strcmp(test, "wrappers") || !strcmp(test, "wrappers1"))
     {
@@ -36,11 +37,6 @@ static int select_test(char *test)
     if (!strcmp(test, "mem") || !strcmp(test, "mem2"))
     {
         results |= mem_test2();
-    }
-
-    if (!strcmp(test, "galloc"))
-    {
-        results |= galloc_test1();
     }
     
     return results;
