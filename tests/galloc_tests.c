@@ -33,10 +33,19 @@ int galloc_test02()
 }
 
 /**
- * Test galloc.h.
+ * Test galloc.h make_block_free.
  */
 int galloc_test03()
 {
+    void *x = get_unused(64);
+    void *z = use_block(x, NULL, 64);
+    set_ref_total(get_block_header(z), 0);
+    make_block_free(z);
+    void *y = use_block(get_unused(64), NULL, 64);
+    if (x != y)
+    {
+        return 1;
+    }
     return 0;
 }
 

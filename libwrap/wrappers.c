@@ -119,6 +119,12 @@ void *Mmap(void *addr, size_t length)
 
     void *block = mmap(addr, length, GCAT_MANAGED_PAGE_PROT,
         GCAT_MANAGED_PAGE_FLAGS, devzero_fd, 0);
+    // Fallback
+    if (block == MAP_FAILED)
+    {
+        block = mmap(NULL, length, GCAT_MANAGED_PAGE_PROT,
+            GCAT_MANAGED_PAGE_FLAGS, devzero_fd, 0);
+    }
     if (block == MAP_FAILED)
     {
         unixerror_simple(errno, "initializing page with mmap function");

@@ -104,7 +104,7 @@ void *use_block(void *block, void (*finalizer)(void *), size_t size)
 }
 
 /**
- * Free a struct block if necessary by applying recursive cases.
+ * Free a struct block.
  * @param position the block at a position
  */
 void make_block_free(void *position)
@@ -115,7 +115,10 @@ void make_block_free(void *position)
         return;
     }
     struct block *blk = get_block_header(position);
-    free_block(blk, last_unused, is_managed(get_after(blk)));
+    if (get_ref_total(blk) == 0)
+    {
+        last_unused = free_block(blk, last_unused, is_managed(get_after(blk)));
+    }
 }
 
 /**

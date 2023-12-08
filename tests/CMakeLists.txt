@@ -40,6 +40,12 @@ add_test(NAME TestBlocks14 COMMAND "./${PROJECT_NAME}" blocks14)
 add_test(NAME TestGalloc COMMAND "./${PROJECT_NAME}" galloc)
 add_test(NAME TestGalloc1 COMMAND "./${PROJECT_NAME}" galloc01)
 add_test(NAME TestGalloc2 COMMAND "./${PROJECT_NAME}" galloc02)
+add_test(NAME TestGalloc3 COMMAND "./${PROJECT_NAME}" galloc03)
+add_test(NAME TestGalloc4 COMMAND "./${PROJECT_NAME}" galloc04)
+add_test(NAME TestGalloc5 COMMAND "./${PROJECT_NAME}" galloc05)
+add_test(NAME TestGalloc6 COMMAND "./${PROJECT_NAME}" galloc06)
+add_test(NAME TestGalloc7 COMMAND "./${PROJECT_NAME}" galloc07)
+add_test(NAME TestGalloc8 COMMAND "./${PROJECT_NAME}" galloc08)
 
 # GCAT library test
 #add_test(NAME TestGcat COMMAND "./${PROJECT_NAME}" gcat)
