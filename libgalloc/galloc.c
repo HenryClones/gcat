@@ -156,50 +156,32 @@ void increase_total_users(void *position)
  * Decrease the strong users of a block.
  * @param position the position of this block
  */
-int decrease_strong_users(void *position)
+void decrease_strong_users(void *position)
 {
     // Check if the position even has a header
     if (!is_managed(position))
     {
-        return 0;
+        return;
     }
     struct block *blk = get_block_header(position);
     // Decrease the block's strong references.
-    int refs = get_ref_strong(blk) - 1;
-    if (refs != 0)
-    {
-        set_ref_strong(blk, refs);
-        return 1;
-    }
-    else
-    {
-        return 0;
-    }
+    set_ref_strong(blk, get_ref_strong(blk) - 1);
 }
 
 /**
  * Decrease the total users of a block.
  * @param position the position of this block
  */
-int decrease_total_users(void *position)
+void decrease_total_users(void *position)
 {
     // Check if the position even has a header
     if (!is_managed(position))
     {
-        return 0;
+        return;
     }
     struct block *blk = get_block_header(position);
     // Decrease the block's total references.
-    int refs = get_ref_total(blk) - 1;
-    if (refs != 0)
-    {
-        set_ref_total(blk, refs);
-        return 1;
-    }
-    else
-    {
-        return 0;
-    }
+    set_ref_total(blk, get_ref_total(blk) - 1);
 }
 
 /**

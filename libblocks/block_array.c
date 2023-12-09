@@ -50,6 +50,7 @@ struct block *free_block(struct block *blk, struct block *next, int has_after)
         // Execute finalizer over payload
         typedef void(* finalizer)(void *);
         ((finalizer) get_finalizer(blk))(get_payload(blk));
+        set_finalizer(blk, NULL);
     }
     // Assimilate before blocks
     // Assimilate after blocks

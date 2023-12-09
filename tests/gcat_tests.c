@@ -133,7 +133,7 @@ static void true_finalizer(void *payload)
     void **ptrs = payload;
     void *current = NULL;
     int i;
-    for (i = 0, current = ptrs[i]; current != NULL; current = ptrs[i])
+    for (i = 0, current = ptrs[i]; current != NULL; current = ptrs[i], ++i)
     {
         burr_heap(current);
     }
@@ -150,24 +150,28 @@ static int gcat_test06()
     int i;
     for (i = 0; i < blocks; ++i)
     {
-        // Fit the terminating null pointer
-        data[i] = gall(8 * (i + 2), true_finalizer);
+        /*
+         * data should be length blocks
+         * The smallest item in data should be length 2
+         * The largest item in data should be length blocks + 1
+         * Each item in data should be a list of pointers, null pointer terminated
+         */
+        data[i] = (void **) gall(8 * (i + 2), true_finalizer);
         data[i][i + 1] = NULL;
     }
     // Do the setting as a separate step
     for (i = 0; i < blocks; ++i)
     {
+        /*
+         * Each item in data should reference the previous i items
+         * Loops over to item n-1
+         */
+        // Formulate the graph here
+        data[i][0] = hew_heap(data[blocks - 1]);
         int j;
-        for (j = 0; j <= i; ++j)
+        for (j = 1; j <= i; ++j)
         {
-            if (i == 0)
-            {
-                data[i][j] = hew_heap(data[blocks - 1]);
-            }
-            else
-            {
-                data[i][j] = hew_heap(data[i - 1]);
-            }
+            data[i][j] = hew_heap(data[j - 1]);
         }
     }
     // Build a really overcomplicated resource graph to challenge fate or w/e

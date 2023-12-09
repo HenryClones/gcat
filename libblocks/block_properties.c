@@ -160,7 +160,7 @@ struct block *get_next(struct block *blk)
  * @pre blk is used
  * @return the strong users
  */
-int get_ref_strong(struct block *blk)
+uint32_t get_ref_strong(struct block *blk)
 {
     return blk->header.used_block.users.strong_users;
 }
@@ -172,10 +172,10 @@ int get_ref_strong(struct block *blk)
  * @post block has one more strong reference
  * @param blk the pointer to the block in GCAT to add a reference to
  */
-void set_ref_strong(struct block *blk, int x)
+void set_ref_strong(struct block *blk, uint32_t x)
 {
-    blk->header.used_block.users.strong_users = x;
-    set_ref_total(blk, x);
+    int diff = blk->header.used_block.users.strong_users - x;
+    set_ref_total(blk, get_ref_total(blk) - diff);
 }
 
 /**
@@ -183,7 +183,7 @@ void set_ref_strong(struct block *blk, int x)
  * @pre blk is used
  * @return the total users
  */
-int get_ref_total(struct block *blk)
+uint32_t get_ref_total(struct block *blk)
 {
     return blk->header.used_block.users.total_users;
 }
@@ -195,7 +195,7 @@ int get_ref_total(struct block *blk)
  * @post blk has one more weak reference
  * @param blk the pointer to the block in GCAT to add a reference to
  */
-void set_ref_total(struct block *blk, int x)
+void set_ref_total(struct block *blk, uint32_t x)
 {
     blk->header.used_block.users.total_users = x;
 }
@@ -235,7 +235,11 @@ void set_finalizer(struct block *blk, void(* finalizer)(void *))
  */
 void *get_finalizer(struct block *blk)
 {
-    return blk->header.used_block.finalizer;
+    if (blk->flags & has_finalizer)
+    {
+        return blk->header.used_block.finalizer;
+    }
+    return NULL;
 }
 
 /**

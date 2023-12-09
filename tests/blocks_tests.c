@@ -130,7 +130,7 @@ static int blocks_test06()
     struct block x;
     init_flags(&x);
 
-    int refs = 0;
+    uint32_t refs = 0;
     
     set_ref_strong(&x, refs);
     if (get_ref_strong(&x) != refs)
@@ -154,7 +154,7 @@ static int blocks_test07()
     struct block x;
     init_flags(&x);
 
-    int refs = 0;
+    uint32_t refs = 0;
 
     set_ref_total(&x, refs);
     if (get_ref_total(&x) != refs)

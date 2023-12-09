@@ -56,7 +56,7 @@ int galloc_test04()
 {
     void *x = use_block(get_unused(64), NULL, 64);
     struct block *bx = get_block_header(x);
-    int32_t users[2];
+    uint32_t users[2];
     users[0] = get_ref_strong(bx);
     users[1] = get_ref_total(bx);
     if (users[0] == 0 || users[1] == 0)
@@ -78,7 +78,7 @@ int galloc_test05()
 {
     void *x = use_block(get_unused(64), NULL, 64);
     struct block *bx = get_block_header(x);
-    int32_t users[2];
+    uint32_t users[2];
     users[0] = get_ref_strong(bx);
     users[1] = get_ref_total(bx);
     if (users[0] == 0 || users[1] == 0)
@@ -100,7 +100,7 @@ int galloc_test06()
 {
     void *x = use_block(get_unused(64), NULL, 64);
     struct block *bx = get_block_header(x);
-    int32_t users[2];
+    uint32_t users[2];
     users[0] = get_ref_strong(bx);
     users[1] = get_ref_total(bx);
     if (users[0] == 0 || users[1] == 0)
@@ -122,7 +122,7 @@ int galloc_test07()
 {
     void *x = use_block(get_unused(64), NULL, 64);
     struct block *bx = get_block_header(x);
-    int32_t users[2];
+    uint32_t users[2];
     users[0] = get_ref_strong(bx);
     users[1] = get_ref_total(bx);
     if (users[0] == 0 || users[1] == 0)
