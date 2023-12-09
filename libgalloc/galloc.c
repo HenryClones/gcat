@@ -98,6 +98,7 @@ void *use_block(void *block, void (*finalizer)(void *), size_t size)
 
     // Then, finish setting the block as used
     set_finalizer(blk, finalizer);
+    set_ref_total(blk, 1);
     set_ref_strong(blk, 1);
 
     return get_payload(blk);
@@ -133,6 +134,7 @@ void increase_strong_users(void *position)
         return;
     }
     struct block *blk = get_block_header(position);
+    set_ref_total(blk, get_ref_total(blk) + 1);
     set_ref_strong(blk, get_ref_strong(blk) + 1);
 }
 
@@ -165,6 +167,7 @@ void decrease_strong_users(void *position)
     }
     struct block *blk = get_block_header(position);
     // Decrease the block's strong references.
+    set_ref_total(blk, get_ref_total(blk) - 1);
     set_ref_strong(blk, get_ref_strong(blk) - 1);
 }
 

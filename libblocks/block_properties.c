@@ -174,8 +174,7 @@ uint32_t get_ref_strong(struct block *blk)
  */
 void set_ref_strong(struct block *blk, uint32_t x)
 {
-    int diff = blk->header.used_block.users.strong_users - x;
-    set_ref_total(blk, get_ref_total(blk) - diff);
+    blk->header.used_block.users.strong_users = x;
 }
 
 /**
