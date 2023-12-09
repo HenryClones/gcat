@@ -12,3 +12,5 @@ test
 # Output
 *.a
 *.so
+*.out.*
+TESTS

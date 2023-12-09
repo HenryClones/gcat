@@ -1,0 +1,8 @@
+# common-project-include.in
+
+# Project name
+set(project_name "GCAT")
+# Project version
+set(project_version 1.0.0)
+# Project homepage
+set(project_homepage "https://github.com/HenryClones/gcat")
