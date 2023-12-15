@@ -183,7 +183,7 @@ static int gcat_test06()
         }
         burr_stack(data[i]);
     }
-    return freed_tally == blocks && data[0] == gall(64, NULL);
+    return freed_tally != blocks || data[0] != gall(64, NULL);
 }
 
 /**
