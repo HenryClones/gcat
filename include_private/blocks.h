@@ -31,15 +31,10 @@ struct block
 
         struct
         {
-            // A block's users are stored as a unit.
-            struct
-            {
-                // treat as implementation dependent?
-                uint32_t total_users;
-                uint32_t strong_users;
-            } users;
             // The finalizer, if defined
             void(* finalizer)(void *);
+            struct disj_set* cycle;
+            uint32_t users;
         } used_block;
     } header;
 
@@ -51,8 +46,8 @@ struct block
 
 // block_properties.c
 void init_flags(struct block *blk);
-void set_used(struct block *blk, int new, int has_next);
-void set_prevused(struct block *blk, int new);
+void set_used(struct block *blk, int x, int has_next);
+void set_prevused(struct block *blk, int x);
 int get_used(struct block *blk);
 int get_prevused(struct block *blk);
 size_t *get_block_boundary(struct block *blk);
@@ -77,6 +72,17 @@ struct block *get_before(struct block *blk);
 struct block *coalesce(struct block *min, struct block *max, struct block *blk, size_t desired_size);
 struct block *free_block(struct block *blk, struct block *next, int has_after);
 struct block * __attribute__ ((const)) get_block_header(void *position);
+
+// Auxiliary system
+struct disj_set
+{
+    struct disj_set* parent;
+    struct block* value;
+    int rank;
+};
+
+struct disj_set* find_set(struct disj_set* start);
+void make_union(struct disj_set* a, struct disj_set* b);
 
 #endif // GCAT_BLOCKS_H
 
