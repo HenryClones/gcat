@@ -19,3 +19,4 @@ Testing
 *.so
 *.out.*
 TESTS
+lib/gcat_export.h
