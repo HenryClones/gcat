@@ -1,4 +1,4 @@
-#include <blocks.h>
+#include "blocks.h"
 #ifdef __BIGGEST_ALIGNMENT__
 #define BLOCK_ALIGN __BIGGEST_ALIGNMENT__
 #else
@@ -8,11 +8,11 @@
 /**
  * Set this block's used flag.
  * @param blk this block
- * @param new the new status of used/free
+ * @param x the x status of used/free
  */
-void set_used(struct block *blk, int new, int has_next)
+void set_used(struct block *blk, int x, int has_next)
 {
-    if (new)
+    if (x)
     {
         blk->flags &= ~free;
     }
@@ -24,7 +24,7 @@ void set_used(struct block *blk, int new, int has_next)
     if (has_next)
     {
         struct block *next = get_after(blk);
-        set_prevused(next, new);
+        set_prevused(next, x);
     }
 }
 
@@ -36,11 +36,11 @@ void init_flags(struct block *blk)
 /**
  * Set this block's prev used flag.
  * @param blk this block
- * @param new the new status of used/free
+ * @param x the x status of used/free
  */
-void set_prevused(struct block *blk, int new)
+void set_prevused(struct block *blk, int x)
 {
-    if (new)
+    if (x)
     {
         blk->flags &= ~prev_free;
     }
@@ -162,7 +162,7 @@ struct block *get_next(struct block *blk)
  */
 uint32_t get_ref_strong(struct block *blk)
 {
-    return blk->header.used_block.users.strong_users;
+    return blk->header.used_block.users;
 }
 
 /**
@@ -174,29 +174,7 @@ uint32_t get_ref_strong(struct block *blk)
  */
 void set_ref_strong(struct block *blk, uint32_t x)
 {
-    blk->header.used_block.users.strong_users = x;
-}
-
-/**
- * Get the total references of a block.
- * @pre blk is used
- * @return the total users
- */
-uint32_t get_ref_total(struct block *blk)
-{
-    return blk->header.used_block.users.total_users;
-}
-
-/**
- * Add a weak reference to the current block.
- * Implementation dependent.
- * @pre blk is a valid block which is currently used
- * @post blk has one more weak reference
- * @param blk the pointer to the block in GCAT to add a reference to
- */
-void set_ref_total(struct block *blk, uint32_t x)
-{
-    blk->header.used_block.users.total_users = x;
+    blk->header.used_block.users = x;
 }
 
 /**
