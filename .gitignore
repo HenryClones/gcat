@@ -8,6 +8,11 @@ CMakeFiles
 CMakeCache.*
 cmake_install*
 test
+compile_commands.json
+DartConfiguration.tcl
+*.cmake
+Testing
+.cache
 
 # Output
 *.a
