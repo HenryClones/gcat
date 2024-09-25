@@ -1,7 +1,8 @@
 # CMakeLists.txt
 
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.5)
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_PROJECT_INCLUDE_BEFORE "${CMAKE_CURRENT_LIST_DIR}/common-project-include.in")
 
 project(${project_name} VERSION ${project_version} LANGUAGES ${project_languages})
@@ -19,15 +20,15 @@ set(CMAKE_C_COMPILE_FEATURES "Clang")
 link_directories("include_public")
 link_directories("include_private")
 
-# The GCAT wrappers, statically linked
+# The GCAT system-dependent wrappers, statically linked
 add_subdirectory("libwrap")
-# The GCAT wrappers, statically linked
+# The GCAT memory utilities, statically linked
 add_subdirectory("libmem")
-# The GCAT wrappers, statically linked
+# The GCAT blocks, statically linked
 add_subdirectory("libblocks")
-# The GCAT wrappers, statically linked
+# The GCAT internal layer, statically linked
 add_subdirectory("libgalloc")
-# The GCAT library, dynamically linked
+# The GCAT exposed functions, dynamically linked
 add_subdirectory("lib")
 
 # Testing system
