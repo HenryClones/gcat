@@ -82,7 +82,7 @@ struct disj_set
 };
 
 struct disj_set* find_set(struct disj_set* start);
-void make_union(struct disj_set* a, struct disj_set* b);
+struct disj_set* make_union(struct disj_set* a, struct disj_set* b);
 
 #endif // GCAT_BLOCKS_H
 
